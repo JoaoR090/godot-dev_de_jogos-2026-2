@@ -55,15 +55,6 @@ Depois de baixar e extrair (ou clonar) o projeto, siga estas etapas:
 
 Após a importação, o projeto deverá aparecer na lista de projetos do Godot.
 
-## 4. Abrindo e executando o projeto
-
-Com o projeto importado:
-
-1. Selecione o projeto na lista de projetos do Godot.
-2. Abra o projeto no editor.
-3. Aguarde o carregamento dos recursos e a conclusão da importação, caso necessário.
-4. Para executar o projeto, clique no botão **Executar projeto (F6/F5, conforme a ação desejada)** ou pressione `F6` para executar a cena atual e `F5` para executar o projeto principal.
-
 ---
 
 **Pronto!** Após seguir essas etapas, o projeto estará importado no Godot e pronto para ser executado ou editado.
