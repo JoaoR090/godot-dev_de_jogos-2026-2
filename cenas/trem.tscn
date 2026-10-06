@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://cbv5ee1ok63ed"]
 
+[ext_resource type="Script" uid="uid://ctwjqc12bkqs6" path="res://scripts/trem.gd" id="1_b50tg"]
+
 [node name="Trem" type="Node3D" unique_id=250326021]
+script = ExtResource("1_b50tg")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1123662454]
