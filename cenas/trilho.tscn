@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://c44cj7nu3yej3"]
+
+[ext_resource type="Script" uid="uid://ya3b0tytk5n5" path="res://scripts/trilho.gd" id="1_vwf2u"]
+
+[node name="Trilho" type="Node3D" unique_id=1888548754]
+script = ExtResource("1_vwf2u")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=2124201640]

@@ -1,3 +1,8 @@
 [gd_scene format=3 uid="uid://c1i8224206cbq"]
 
+[ext_resource type="Script" uid="uid://d1fmgfvxpqjjl" path="res://scripts/estacao.gd" id="1_anqgy"]
+
 [node name="Estacao" type="Node3D" unique_id=1099004966]
+script = ExtResource("1_anqgy")
+
+[node name="Sprite3D" type="Sprite3D" parent="." unique_id=475295314]
