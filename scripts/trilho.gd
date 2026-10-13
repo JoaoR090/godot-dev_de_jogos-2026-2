@@ -1,4 +1,4 @@
-cclass_name Trilho
+class_name Trilho
 extends Node3D
 
 enum eixo {
@@ -19,7 +19,7 @@ enum sentido {
 	ESQUERDA
 }
 
-var angulo: int = 90
+var angulo: int = 0
 var pos: Vector3
 var direção : eixo
 
