@@ -1,6 +1,13 @@
 [gd_scene format=3 uid="uid://c44cj7nu3yej3"]
 
 [ext_resource type="Script" uid="uid://ya3b0tytk5n5" path="res://scripts/trilho.gd" id="1_vwf2u"]
+[ext_resource type="MeshLibrary" uid="uid://ifee5afklfbq" path="res://assets/library/library.tres" id="2_3ffmh"]
 
-[node name="Trilho" type="Node3D" unique_id=1888548754]
+[node name="Trilhos" type="Node3D" unique_id=1888548754]
 script = ExtResource("1_vwf2u")
+
+[node name="GridMap" type="GridMap" parent="." unique_id=1643442532]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+mesh_library = ExtResource("2_3ffmh")
+cell_size = Vector3(4, 4, 4)
+metadata/_editor_floor_ = Vector3(0, 1, 0)
