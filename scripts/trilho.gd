@@ -1,89 +1,70 @@
 class_name Trilho
-extends Node3D
+extends GridMap
 
-enum eixo {
+enum Eixo {
 	EIXO_Z,
 	EIXO_X
 }
 
-enum tipos {
+enum Tipo {
 	CURVA,
-	RETO,
-	VÀRIAS
+	RETO
 }
 
-enum sentido {
+enum Sentido {
 	CIMA,
 	BAIXO,
 	DIREITA,
 	ESQUERDA
 }
 
-var angulo: int = 0
-var pos: Vector3
-var direção : eixo
+@export var ID_RETO: int = 0
+@export var ID_CURVO: int = 1
 
-func _init(direc_eixo: eixo, tipo: tipos, sentidos: Array[sentido]):
-	direção = direc_eixo
-	var trilho
-	if tipo == tipos.RETO:
-		trilho = preload("res://assets/3d models/Trilho.glb").instantiate()
-		if direc_eixo == eixo.EIXO_X:
-			trilho.rotation_degrees = Vector3(0, angulo - 90, 0)
-		add_child(trilho)
-	elif tipo == tipos.CURVA:
-		if direc_eixo == eixo.EIXO_Z:
-			match sentidos[0]:
-				sentido.DIREITA:
-					trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-					trilho.rotation_degrees = Vector3(0, angulo - 90, 0)
-					add_child(trilho)
-				sentido.ESQUERDA:
-					trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-					trilho.rotation_degrees = Vector3(0, angulo + 90, 0)
-					add_child(trilho)
-		elif direc_eixo == eixo.EIXO_X:
-			match sentidos[0]:
-				sentido.CIMA:
-					trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-					trilho.rotation_degrees = Vector3(0, angulo + 0, 0)
-					add_child(trilho)
-				sentido.BAIXO:
-					trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-					trilho.rotation_degrees = Vector3(0, angulo + 180, 0)
-					add_child(trilho)
-	elif tipo == tipos.VÀRIAS:
-		if direc_eixo == eixo.EIXO_Z:
-			for pos in sentidos:
-				match pos:
-					sentido.CIMA or sentido.BAIXO:
-						trilho = preload("res://assets/3d models/Trilho.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo + 0, 0)
-						add_child(trilho)
-					sentido.DIREITA:
-						trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo - 90, 0)
-						add_child(trilho)
-					sentido.ESQUERDA:
-						trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo + 90, 0)
-						add_child(trilho)
-					_:
-						print('f')
-		elif direc_eixo == eixo.EIXO_X:
-			for pos in sentidos:
-				match pos:
-					sentido.CIMA:
-						trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo + 0, 0)
-						add_child(trilho)
-					sentido.DIREITA or sentido.ESQUERDA:
-						trilho = preload("res://assets/3d models/Trilho.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo - 90, 0)
-						add_child(trilho)
-					sentido.BAIXO:
-						trilho = preload("res://assets/3d models/Trilho_curvo.glb").instantiate()
-						trilho.rotation_degrees = Vector3(0, angulo + 180, 0)
-						add_child(trilho)
-					_:
-						print('f')
+var angulo: float = 0.0
+
+func mudar_curva()->void:
+	pass
+
+func configurar(posicao: Vector3i, eixo_trilho: Eixo, tipo_trilho: Tipo, sentidos: Array[Sentido]) -> void:
+	match tipo_trilho:
+		Tipo.RETO:
+			var rotacao := 0.0
+			if eixo_trilho == Eixo.EIXO_X:
+				rotacao = -90.0
+			_colocar_peca(posicao, ID_RETO, angulo + rotacao)
+
+		Tipo.CURVA:
+			if sentidos.is_empty():
+				print("Informe o sentido da curva.")
+				return
+			var resultado = 1000
+			match eixo_trilho:
+				Eixo.EIXO_Z:
+					match sentidos[0]:
+						Sentido.DIREITA:
+							resultado = -90.0
+
+						Sentido.ESQUERDA:
+							resultado = 90.0
+
+				Eixo.EIXO_X:
+					match sentidos[0]:
+						Sentido.CIMA:
+							resultado = 0.0
+
+						Sentido.BAIXO:
+							resultado = 180.0
+			if resultado == 1000:
+				print("Combinação de eixo e sentido inválida.")
+				return
+
+			_colocar_peca(posicao, ID_CURVO, angulo + resultado)
+
+
+func _colocar_peca(posicao: Vector3i, id_peca: int, rotacao_y: float) -> void:
+	var base_rotacao := Basis(Vector3.UP, deg_to_rad(rotacao_y))
+
+	var orientacao := get_orthogonal_index_from_basis(base_rotacao)
+
+	set_cell_item(posicao, id_peca, orientacao)
