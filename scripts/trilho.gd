@@ -24,60 +24,6 @@ enum Sentido {
 func remover_trilho(posicao: Vector3i)->void:
 	set_cell_item(posicao, -1)
 
-func mudar_curva(posicao: Vector3i)->void:
-	var orientacaoAtual: int = get_cell_item_orientation(posicao)
-	var item: int = get_cell_item(posicao)
-
-	if item != ID_CURVO:
-		return
-
-	var angulo: float = _orientacao_para_angulo(orientacaoAtual)
-	var sentidoOriginal: Sentido
-	
-	match roundi(angulo):
-		0:
-			sentidoOriginal = Sentido.CIMA
-		90:
-			sentidoOriginal = Sentido.DIREITA
-		180:
-			sentidoOriginal = Sentido.BAIXO
-		270:
-			sentidoOriginal = Sentido.ESQUERDA
-		_:
-			return
-
-	var sentido: Sentido = sentidoOriginal
-	var trilhosAdjacentes: Array[Sentido] = []
-	for i in range(2):
-		sentido = _proximo_sentido(sentido)
-		if tem_trilho(posicao, sentido):
-			trilhosAdjacentes.push_back(sentido)
-
-	if trilhosAdjacentes.is_empty():
-		print("Sem trilhos adjacentes")
-		return
-
-	if trilhosAdjacentes[0] == _proximo_sentido(sentidoOriginal):
-		sentido = trilhosAdjacentes[0]
-	elif trilhosAdjacentes[0] == _proximo_sentido_n(sentidoOriginal, 2):
-		sentido = _proximo_sentido_n(sentidoOriginal, 3)
-	else:
-		return
-
-	match sentido:
-		Sentido.CIMA:
-			angulo = 0
-		Sentido.DIREITA:
-			angulo = 90
-		Sentido.BAIXO:
-			angulo = 180
-		Sentido.ESQUERDA:
-			angulo = 270
-
-	var novaOrientacao: int = _angulo_para_orientacao(angulo)
-
-	set_cell_item(posicao, item, novaOrientacao)
-
 func _mudar_curva(posicao: Vector3i) -> void:
 	var item: int = get_cell_item(posicao)
 
@@ -90,10 +36,7 @@ func _mudar_curva(posicao: Vector3i) -> void:
 	if sentidoAtual == -1:
 		return
 
-	var novoSentido: int = _calcular_sentido_curva(
-		posicao,
-		sentidoAtual
-	)
+	var novoSentido: int = _calcular_sentido_curva(posicao, sentidoAtual)
 
 	if novoSentido == -1:
 		return
@@ -101,7 +44,6 @@ func _mudar_curva(posicao: Vector3i) -> void:
 	var novaOrientacao: int = _sentido_para_orientacao(novoSentido)
 
 	set_cell_item(posicao, item, novaOrientacao)
-
 
 func _obter_sentido(orientacao: int) -> int:
 	var angulo: float = _orientacao_para_angulo(orientacao)
@@ -118,29 +60,27 @@ func _obter_sentido(orientacao: int) -> int:
 		_:
 			return -1
 
-
 func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: int) -> int:
-	var sentidosAdjacentes: Array[Sentido] = []
+	var trilhosAdjacentes: Array[Sentido] = []
 	var sentido: int = sentidoAtual
 
 	for i in range(2):
 		sentido = _proximo_sentido(sentido)
 
 		if tem_trilho(posicao, sentido):
-			sentidosAdjacentes.push_back(sentido)
+			trilhosAdjacentes.push_back(sentido)
 
-	if sentidosAdjacentes.is_empty():
+	if trilhosAdjacentes.is_empty():
 		print("Sem trilhos adjacentes")
 		return -1
 
-	if sentidosAdjacentes[0] == _proximo_sentido(sentidoAtual):
-		return sentidosAdjacentes[0]
+	if trilhosAdjacentes[0] == _proximo_sentido(sentidoAtual):
+		return trilhosAdjacentes[0]
 
-	if sentidosAdjacentes[0] == _proximo_sentido_n(sentidoAtual, 2):
+	if trilhosAdjacentes[0] == _proximo_sentido_n(sentidoAtual, 2):
 		return _proximo_sentido_n(sentidoAtual, 3)
 
 	return -1
-
 
 func _sentido_para_orientacao(sentido: int) -> int:
 	var angulo: float
