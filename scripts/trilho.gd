@@ -1,16 +1,19 @@
 class_name Trilhos
 extends GridMap
 
+# Eixo principal dos trilhos retos.
 enum Eixo {
 	EIXO_Z,
 	EIXO_X
 }
 
+# Tipos de peca que podem ser colocados no GridMap.
 enum Tipo {
 	CURVA,
 	RETO
 }
 
+# Direcoes usadas para orientar as pecas e verificar conexoes.
 enum Sentido {
 	CIMA,
 	BAIXO,
@@ -18,9 +21,11 @@ enum Sentido {
 	ESQUERDA
 }
 
+# IDs dos modelos correspondentes na biblioteca do GridMap.
 @export var ID_RETO: int = 0
 @export var ID_CURVO: int = 1
 
+# Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
 func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentidos: Array[Sentido]) -> void:
 	match tipoTrilho:
 		Tipo.RETO:
@@ -64,9 +69,11 @@ func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentidos:
 
 			_colocar_peca(posicao, ID_CURVO, resultado)
 
+# Remove a peca da celula indicada.
 func remover_trilho(posicao: Vector3i)->void:
 	set_cell_item(posicao, -1)
 
+# Gira a curva para uma orientacao compativel com os trilhos vizinhos.
 func mudar_curva(posicao: Vector3i) -> void:
 	var item: int = get_cell_item(posicao)
 
@@ -88,6 +95,7 @@ func mudar_curva(posicao: Vector3i) -> void:
 
 	set_cell_item(posicao, item, novaOrientacao)
 
+# Verifica se a celula vizinha na direcao indicada forma uma conexao valida.
 func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
 	var posicaoVizinha: Vector3i = posicao
 	match sentido:
@@ -133,6 +141,7 @@ func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
 
 	return ehConectavel
 
+# Converte uma direcao em eixo, considerando o tipo de peca.
 func _sentido_para_eixo(sentido: Sentido, tipo: Tipo) -> Eixo:
 	var eixo: Eixo
 	match tipo:
@@ -148,6 +157,7 @@ func _sentido_para_eixo(sentido: Sentido, tipo: Tipo) -> Eixo:
 				eixo = Eixo.EIXO_Z
 	return eixo
 
+# Converte a orientacao armazenada pelo GridMap na direcao correspondente.
 func _orientacao_para_sentido(orientacao: int) -> int:
 	var angulo: float = _orientacao_para_angulo(orientacao)
 
@@ -163,6 +173,7 @@ func _orientacao_para_sentido(orientacao: int) -> int:
 		_:
 			return -1
 
+# Converte uma direcao em um indice de orientacao do GridMap.
 func _sentido_para_orientacao(sentido: int) -> int:
 	var angulo: float
 
@@ -180,20 +191,24 @@ func _sentido_para_orientacao(sentido: int) -> int:
 
 	return _angulo_para_orientacao(angulo)
 
+# Extrai o angulo Y da orientacao ortogonal usada pelo GridMap.
 func _orientacao_para_angulo(orientacao: int) -> float:
 	var base := get_basis_with_orthogonal_index(orientacao)
 	var angulo: float = rad_to_deg(base.get_euler().y)
 	return fposmod(angulo, 360.0)
 
+# Converte um angulo Y em indice de orientacao do GridMap.
 func _angulo_para_orientacao(angulo: float) -> int:
 	var base := Basis(Vector3.UP, deg_to_rad(angulo))
 	return get_orthogonal_index_from_basis(base)
 
+# Avanca varias posicoes na sequencia circular das direcoes.
 func _proximo_sentido_n(sentido: Sentido, n_vezes: int) -> Sentido:
 	for i  in range(n_vezes):
 		sentido = _proximo_sentido(sentido)
 	return sentido
 
+# Avanca uma posicao: cima, direita, baixo, esquerda e novamente cima.
 func _proximo_sentido(sentido: Sentido) -> Sentido:
 	match sentido:
 		Sentido.CIMA:
@@ -206,6 +221,7 @@ func _proximo_sentido(sentido: Sentido) -> Sentido:
 			return Sentido.CIMA
 	return sentido
 
+# Usa as conexoes vizinhas para determinar a nova orientacao da curva.
 func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: int) -> int:
 	var trilhosAdjacentes: Array[Sentido] = []
 	var sentido: int = sentidoAtual
@@ -228,6 +244,7 @@ func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: int) -> int:
 
 	return -1
 
+# Aplica uma peca na celula usando o angulo informado para sua rotacao.
 func _colocar_peca(posicao: Vector3i, idPeca: int, rotacaoY: float) -> void:
 	var baseRotacao := Basis(Vector3.UP, deg_to_rad(rotacaoY))
 	var orientacao := get_orthogonal_index_from_basis(baseRotacao)
