@@ -118,10 +118,10 @@ func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
 	var ehConectavel: bool = false
 
 	if itemVizinho == ID_RETO:
-		var eixoVizinho: Eixo = _sentido_para_eixo(Sentido, Tipo.RETO)
+		var eixoVizinho: Eixo = _sentido_para_eixo(sentidoVizinho, Tipo.RETO)
 		if (sentido == Sentido.CIMA or sentido == Sentido.BAIXO) and eixoVizinho == Eixo.EIXO_Z:
 			ehConectavel = true
-		elif (sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA) and eixoVizinho == Eixo.EIXO_Z:
+		elif (sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA) and eixoVizinho == Eixo.EIXO_X:
 			ehConectavel = true
 
 	elif itemVizinho == ID_CURVO:

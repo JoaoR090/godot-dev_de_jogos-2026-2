@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://durwus3vllwu"]
+
+[ext_resource type="Script" uid="uid://vcb5v2at6rit" path="res://scripts/teste.gd" id="1_lbg61"]
+[ext_resource type="PackedScene" uid="uid://c44cj7nu3yej3" path="res://cenas/trilho.tscn" id="1_t87xa"]
+
+[node name="Node3D" type="Node3D" unique_id=656460969]
+script = ExtResource("1_lbg61")
+
+[node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("1_t87xa")]
