@@ -248,9 +248,102 @@ func _testar_mudar_curva(pos: Vector3i) -> void:
 		"A curva mudou de orientacao sem trilhos vizinhos."
 	)
 
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.CIMA, Trilhos.Sentido.DIREITA, Trilhos.Sentido.DIREITA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.CIMA, Trilhos.Sentido.BAIXO, Trilhos.Sentido.ESQUERDA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.DIREITA, Trilhos.Sentido.BAIXO, Trilhos.Sentido.BAIXO
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.DIREITA, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.CIMA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.BAIXO, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.ESQUERDA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.BAIXO, Trilhos.Sentido.CIMA, Trilhos.Sentido.DIREITA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.CIMA, Trilhos.Sentido.CIMA
+	)
+	_testar_rotacao_curva_com_vizinho(
+		pos, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.DIREITA, Trilhos.Sentido.BAIXO
+	)
+	_testar_rotacao_curva_com_dois_vizinhos(pos)
+
 	trilhos.remover_trilho(pos)
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
+
+func _testar_rotacao_curva_com_vizinho(
+	pos: Vector3i,
+	orientacaoInicial: Trilhos.Sentido,
+	ladoVizinho: Trilhos.Sentido,
+	orientacaoEsperada: Trilhos.Sentido
+) -> void:
+	var celulaVizinha := _posicao_vizinha(pos, ladoVizinho)
+	trilhos.remover_trilho(pos)
+	trilhos.remover_trilho(celulaVizinha)
+
+	_configurar_curva(pos, orientacaoInicial)
+	_configurar_curva(celulaVizinha, _sentido_de_entrada(ladoVizinho))
+	trilhos.mudar_curva(pos)
+
+	assert(
+		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(orientacaoEsperada),
+		"Com orientacao inicial %s e vizinho em %s, esperava orientacao %s."
+		% [orientacaoInicial, ladoVizinho, orientacaoEsperada]
+	)
+
+	trilhos.remover_trilho(pos)
+	trilhos.remover_trilho(celulaVizinha)
+
+func _testar_rotacao_curva_com_dois_vizinhos(pos: Vector3i) -> void:
+	var vizinha_direita := _posicao_vizinha(pos, Trilhos.Sentido.DIREITA)
+	var vizinha_abaixo := _posicao_vizinha(pos, Trilhos.Sentido.BAIXO)
+	trilhos.remover_trilho(pos)
+	trilhos.remover_trilho(vizinha_direita)
+	trilhos.remover_trilho(vizinha_abaixo)
+
+	_configurar_curva(pos, Trilhos.Sentido.CIMA)
+	_configurar_curva(vizinha_direita, _sentido_de_entrada(Trilhos.Sentido.DIREITA))
+	_configurar_curva(vizinha_abaixo, _sentido_de_entrada(Trilhos.Sentido.BAIXO))
+	trilhos.mudar_curva(pos)
+
+	assert(
+		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.DIREITA),
+		"Com duas conexoes candidatas, a curva deveria priorizar a direita."
+	)
+
+	trilhos.remover_trilho(pos)
+	trilhos.remover_trilho(vizinha_direita)
+	trilhos.remover_trilho(vizinha_abaixo)
+
+func _configurar_curva(pos: Vector3i, sentido: Trilhos.Sentido) -> void:
+	var eixo: Trilhos.Eixo
+	match sentido:
+		Trilhos.Sentido.CIMA, Trilhos.Sentido.BAIXO:
+			eixo = Trilhos.Eixo.EIXO_X
+		Trilhos.Sentido.DIREITA, Trilhos.Sentido.ESQUERDA:
+			eixo = Trilhos.Eixo.EIXO_Z
+
+	var sentidos: Array[Trilhos.Sentido] = [sentido]
+	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentidos)
+
+func _sentido_de_entrada(ladoVizinho: Trilhos.Sentido) -> Trilhos.Sentido:
+	match ladoVizinho:
+		Trilhos.Sentido.CIMA:
+			return Trilhos.Sentido.BAIXO
+		Trilhos.Sentido.DIREITA:
+			return Trilhos.Sentido.ESQUERDA
+		Trilhos.Sentido.BAIXO:
+			return Trilhos.Sentido.CIMA
+		Trilhos.Sentido.ESQUERDA:
+			return Trilhos.Sentido.DIREITA
+	return Trilhos.Sentido.CIMA
 
 func _posicao_vizinha(pos: Vector3i, sentido: Trilhos.Sentido) -> Vector3i:
 	match sentido:
