@@ -4,7 +4,6 @@ extends Node3D
 
 func _ready() -> void:
 	var pos := Vector3i.ZERO
-	var sem_sentidos: Array[Trilhos.Sentido] = []
 
 	# Confere a colocacao e a remocao de um trilho reto.
 	trilhos.remover_trilho(pos)
@@ -12,7 +11,7 @@ func _ready() -> void:
 		pos,
 		Trilhos.Eixo.EIXO_Z,
 		Trilhos.Tipo.RETO,
-		sem_sentidos
+		Trilhos.Sentido.CIMA
 	)
 	assert(trilhos.get_cell_item(pos) == trilhos.ID_RETO)
 
@@ -28,7 +27,6 @@ func _ready() -> void:
 
 func _testar_configuracao(pos: Vector3i) -> void:
 	print("Testando configuracao de trilhos...")
-	var sem_sentidos: Array[Trilhos.Sentido] = []
 
 	_testar_configuracao_reta(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.CIMA)
 	_testar_configuracao_reta(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.DIREITA)
@@ -45,22 +43,19 @@ func _testar_configuracao(pos: Vector3i) -> void:
 		pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO
 	)
 
-	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.CURVA, sem_sentidos)
-	assert(
-		trilhos.get_cell_item(pos) == -1,
-		"Foi colocada uma curva sem informar seu sentido."
-	)
-
 	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.CIMA)
 	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.BAIXO)
 	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.DIREITA)
 	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.ESQUERDA)
 
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, sem_sentidos)
-	var curva_invalida: Array[Trilhos.Sentido] = [Trilhos.Sentido.CIMA]
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.CURVA, curva_invalida)
+	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
+	trilhos.configurar(
+		pos,
+		Trilhos.Eixo.EIXO_Z,
+		Trilhos.Tipo.CURVA,
+		Trilhos.Sentido.CIMA
+	)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_RETO,
 		"Uma configuracao invalida substituiu a peca que ja estava na celula."
@@ -72,9 +67,8 @@ func _testar_configuracao_reta(
 	eixo: Trilhos.Eixo,
 	orientacao: Trilhos.Sentido
 ) -> void:
-	var sem_sentidos: Array[Trilhos.Sentido] = []
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.RETO, sem_sentidos)
+	trilhos.configurar(pos, eixo, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_RETO,
 		"Nao foi colocado o trilho reto."
@@ -89,9 +83,8 @@ func _testar_configuracao_curva(
 	eixo: Trilhos.Eixo,
 	sentido: Trilhos.Sentido
 ) -> void:
-	var sentidos: Array[Trilhos.Sentido] = [sentido]
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentidos)
+	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_CURVO,
 		"Nao foi colocada a curva para eixo %s e sentido %s." % [eixo, sentido]
@@ -108,9 +101,8 @@ func _testar_configuracao_curva_invalida(
 	eixo: Trilhos.Eixo,
 	sentido: Trilhos.Sentido
 ) -> void:
-	var sentidos: Array[Trilhos.Sentido] = [sentido]
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentidos)
+	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
 	assert(
 		trilhos.get_cell_item(pos) == -1,
 		"Foi colocada curva com combinacao invalida: eixo %s e sentido %s."
@@ -164,10 +156,9 @@ func _testar_conexao_reta(
 	esperado: bool
 ) -> void:
 	var vizinha := _posicao_vizinha(pos, sentido)
-	var sem_sentidos: Array[Trilhos.Sentido] = []
 
 	trilhos.remover_trilho(vizinha)
-	trilhos.configurar(vizinha, eixo, Trilhos.Tipo.RETO, sem_sentidos)
+	trilhos.configurar(vizinha, eixo, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
 
 	var resultado: bool = trilhos.tem_conexao(pos, sentido)
 	assert(
@@ -185,10 +176,9 @@ func _testar_conexao_curva(
 	esperado: bool
 ) -> void:
 	var vizinha := _posicao_vizinha(pos, sentidoVizinho)
-	var orientacoes: Array[Trilhos.Sentido] = [orientacaoCurva]
 
 	trilhos.remover_trilho(vizinha)
-	trilhos.configurar(vizinha, eixoCurva, Trilhos.Tipo.CURVA, orientacoes)
+	trilhos.configurar(vizinha, eixoCurva, Trilhos.Tipo.CURVA, orientacaoCurva)
 
 	var resultado: bool = trilhos.tem_conexao(pos, sentidoVizinho)
 	assert(
@@ -200,8 +190,6 @@ func _testar_conexao_curva(
 
 func _testar_mudar_curva(pos: Vector3i) -> void:
 	print("Testando rotacao de curvas...")
-	var orientacao_inicial: Array[Trilhos.Sentido] = [Trilhos.Sentido.CIMA]
-	var sem_sentidos: Array[Trilhos.Sentido] = []
 	var vizinha_direita := _posicao_vizinha(pos, Trilhos.Sentido.DIREITA)
 	var vizinha_abaixo := _posicao_vizinha(pos, Trilhos.Sentido.BAIXO)
 
@@ -214,7 +202,7 @@ func _testar_mudar_curva(pos: Vector3i) -> void:
 		"mudar_curva colocou uma peca em uma celula vazia."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, sem_sentidos)
+	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
 	var orientacao_reta: int = trilhos.get_cell_item_orientation(pos)
 	trilhos.mudar_curva(pos)
 	assert(
@@ -222,24 +210,34 @@ func _testar_mudar_curva(pos: Vector3i) -> void:
 		"mudar_curva alterou a orientacao de um trilho reto."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, orientacao_inicial)
-	trilhos.configurar(vizinha_direita, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, orientacao_inicial)
+	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
+	trilhos.configurar(
+		vizinha_direita,
+		Trilhos.Eixo.EIXO_X,
+		Trilhos.Tipo.CURVA,
+		Trilhos.Sentido.CIMA
+	)
 	trilhos.mudar_curva(pos)
 	assert(
 		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.DIREITA),
 		"A curva nao girou em direcao ao trilho da direita."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, orientacao_inicial)
+	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
 	trilhos.remover_trilho(vizinha_direita)
-	trilhos.configurar(vizinha_abaixo, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, orientacao_inicial)
+	trilhos.configurar(
+		vizinha_abaixo,
+		Trilhos.Eixo.EIXO_X,
+		Trilhos.Tipo.CURVA,
+		Trilhos.Sentido.CIMA
+	)
 	trilhos.mudar_curva(pos)
 	assert(
 		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.ESQUERDA),
 		"A curva nao girou para o lado oposto ao trilho abaixo."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, orientacao_inicial)
+	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
 	trilhos.remover_trilho(vizinha_abaixo)
 	var orientacao_sem_vizinhos: int = trilhos.get_cell_item_orientation(pos)
 	trilhos.mudar_curva(pos)
@@ -330,8 +328,7 @@ func _configurar_curva(pos: Vector3i, sentido: Trilhos.Sentido) -> void:
 		Trilhos.Sentido.DIREITA, Trilhos.Sentido.ESQUERDA:
 			eixo = Trilhos.Eixo.EIXO_Z
 
-	var sentidos: Array[Trilhos.Sentido] = [sentido]
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentidos)
+	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
 
 func _sentido_de_entrada(ladoVizinho: Trilhos.Sentido) -> Trilhos.Sentido:
 	match ladoVizinho:

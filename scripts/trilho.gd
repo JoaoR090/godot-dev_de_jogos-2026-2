@@ -26,25 +26,26 @@ enum Sentido {
 @export var ID_CURVO: int = 1
 
 # Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
-func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentidos: Array[Sentido]) -> void:
+func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentido: Sentido) -> void:
 	match tipoTrilho:
 		Tipo.RETO:
-			var rotacao: float = 0.0
+			var rotacao: float
 			if eixoTrilho == Eixo.EIXO_X:
 				rotacao = 90.0
+			elif eixoTrilho == Eixo.EIXO_Z:
+				rotacao = 0.0
+			else:
+				print("Eixo inválido.")
+				return
 			_colocar_peca(posicao, ID_RETO, rotacao)
 
 		Tipo.CURVA:
-			if sentidos.is_empty():
-				print("Informe o sentido da curva.")
-				return
-
 			var resultado: float
 			var combinacao_valida: bool = true
 
 			match eixoTrilho:
 				Eixo.EIXO_Z:
-					match sentidos[0]:
+					match sentido:
 						Sentido.DIREITA:
 							resultado = 90.0
 						Sentido.ESQUERDA:
@@ -53,7 +54,7 @@ func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentidos:
 							combinacao_valida = false
 
 				Eixo.EIXO_X:
-					match sentidos[0]:
+					match sentido:
 						Sentido.CIMA:
 							resultado = 0.0
 						Sentido.BAIXO:
@@ -115,6 +116,9 @@ func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
 
 	var sentidoVizinho: int = _orientacao_para_sentido(get_cell_item_orientation(posicaoVizinha))
 
+	if sentidoVizinho == -1:
+		return false
+
 	var ehConectavel: bool = false
 
 	if itemVizinho == ID_RETO:
@@ -148,12 +152,12 @@ func _sentido_para_eixo(sentido: Sentido, tipo: Tipo) -> Eixo:
 		Tipo.RETO:
 			if sentido == Sentido.CIMA or sentido == Sentido.BAIXO:
 				eixo = Eixo.EIXO_Z
-			else:
+			elif sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA:
 				eixo = Eixo.EIXO_X
 		Tipo.CURVA:
 			if sentido == Sentido.CIMA or sentido == Sentido.BAIXO:
 				eixo = Eixo.EIXO_X
-			else:
+			elif sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA:
 				eixo = Eixo.EIXO_Z
 	return eixo
 

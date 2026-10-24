@@ -38,13 +38,13 @@ Se você possui o Git instalado, também pode baixar o projeto pelo terminal.
 Execute o seguinte comando:
 
 ```bash
-git clone https://github.com/JoaoR090/godot-dev_de-jogos-2026-2.git
+git clone https://github.com/JoaoR090/godot-dev_de_jogos-2026-2.git
 ```
 
 Após a conclusão, entre na pasta do projeto:
 
 ```bash
-cd godot-dev_de-jogos-2026-2
+cd godot-dev_de_jogos-2026-2
 ```
 
 Agora você terá uma cópia local do repositório, permitindo trabalhar no projeto, criar branches, realizar commits e enviar alterações para o GitHub.
@@ -70,7 +70,7 @@ Branches permitem desenvolver funcionalidades, corrigir erros ou realizar experi
 Antes de começar a trabalhar, certifique-se de estar na pasta do repositório:
 
 ```bash
-cd godot-dev_de-jogos-2026-2
+cd godot-dev_de_jogos-2026-2
 ```
 
 ### 4.1. Atualizando a branch principal
@@ -78,11 +78,11 @@ cd godot-dev_de-jogos-2026-2
 Antes de criar uma nova branch, atualize as informações do repositório remoto e baixe as alterações mais recentes da branch principal:
 
 ```bash
-git switch main
-git pull origin main
+git switch master
+git pull origin master
 ```
 
-> **Observação:** Caso a branch principal tenha outro nome, substitua `main` pelo nome correto.
+> **Observação:** A branch principal deste repositório chama-se `master`.
 
 ### 4.2. Criando e acessando uma nova branch
 
@@ -189,8 +189,8 @@ Caso outras pessoas tenham enviado alterações para a branch principal, você p
 Primeiro, atualize a branch principal:
 
 ```bash
-git switch main
-git pull origin main
+git switch master
+git pull origin master
 ```
 
 Depois, retorne à sua branch de desenvolvimento:
@@ -202,7 +202,7 @@ git switch nome-da-branch
 Por fim, incorpore as alterações mais recentes da branch principal:
 
 ```bash
-git merge main
+git merge master
 ```
 
 Se houver conflitos, será necessário resolvê-los antes de concluir a integração.
@@ -222,7 +222,7 @@ Siga estas etapas:
 1. Envie sua branch para o GitHub utilizando `git push`.
 2. Acesse o repositório no GitHub.
 3. Localize a opção para criar um **Pull Request**.
-4. Selecione sua branch como origem e `main` como destino.
+4. Selecione sua branch como origem e `master` como destino.
 5. Adicione um título e uma descrição explicando as alterações.
 6. Crie o Pull Request para que as alterações possam ser revisadas e integradas à branch principal.
 
