@@ -1,3 +1,19 @@
 [gd_scene format=3 uid="uid://01xhvgi4c5ue"]
 
+[ext_resource type="PackedScene" uid="uid://cbv5ee1ok63ed" path="res://scenes/trem.tscn" id="1_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://cs8jbjwr7ut0t" path="res://scenes/chao.tscn" id="2_tefeu"]
+[ext_resource type="PackedScene" uid="uid://c1i8224206cbq" path="res://scenes/estacao.tscn" id="3_o6xl0"]
+[ext_resource type="PackedScene" uid="uid://c4cvju0a3ykmm" path="res://scenes/player.tscn" id="4_tipki"]
+[ext_resource type="PackedScene" uid="uid://c44cj7nu3yej3" path="res://scenes/trilho.tscn" id="5_85g3d"]
+
 [node name="Main" type="Node3D" unique_id=1502751328]
+
+[node name="Trem" parent="." unique_id=250326021 instance=ExtResource("1_tbgi4")]
+
+[node name="Chao" parent="." unique_id=787760350 instance=ExtResource("2_tefeu")]
+
+[node name="Estacao" parent="." unique_id=1099004966 instance=ExtResource("3_o6xl0")]
+
+[node name="Player" parent="." unique_id=1211023565 instance=ExtResource("4_tipki")]
+
+[node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]

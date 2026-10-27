@@ -9,6 +9,7 @@ enum Sentido {
 	ESQUERDA
 }
 
-# Ponto de extensao: a verificacao de trilho ainda nao foi implementada.
-func _esta_no_trilho(posicao: Vector3i):
-	pass
+var trilhos: Trilhos
+
+func _nao_esta_no_trilho(posicao: Vector3i) -> bool:
+	return not trilhos.tem_trilho(posicao)

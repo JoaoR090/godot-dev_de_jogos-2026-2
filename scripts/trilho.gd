@@ -25,6 +25,11 @@ enum Sentido {
 @export var ID_RETO: int = 0
 @export var ID_CURVO: int = 1
 
+
+func tem_trilho(posicao: Vector3i):
+	var item: int = get_cell_item(posicao)
+	return item == ID_RETO or item == ID_CURVO
+
 # Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
 func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentido: Sentido) -> void:
 	match tipoTrilho:
