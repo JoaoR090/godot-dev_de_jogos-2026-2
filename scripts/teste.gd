@@ -47,7 +47,7 @@ func _testar_direcoes() -> void:
 		) == Direcao.Eixo.Z
 	)
 
-# Executa casos válidos e inválidos de configuração de trilhos.
+# Executa casos de configuração de trilhos retos e curvas.
 func _testar_configuracao(pos: Vector3i) -> void:
 	print("Testando configuracao de trilhos...")
 
@@ -57,33 +57,14 @@ func _testar_configuracao(pos: Vector3i) -> void:
 		pos, Direcao.Eixo.Z, Direcao.Sentido.DIREITA
 	)
 	_testar_configuracao_curva(
-		pos, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA
+		pos, Direcao.Eixo.X, Direcao.Sentido.ESQUERDA
 	)
 	_testar_configuracao_curva(
-		pos, Direcao.Eixo.X, Direcao.Sentido.CIMA
+		pos, Direcao.Eixo.Z, Direcao.Sentido.CIMA
 	)
 	_testar_configuracao_curva(
-		pos, Direcao.Eixo.X, Direcao.Sentido.BAIXO
+		pos, Direcao.Eixo.Z, Direcao.Sentido.BAIXO
 	)
-
-	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.Z, Direcao.Sentido.CIMA)
-	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.Z, Direcao.Sentido.BAIXO)
-	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.X, Direcao.Sentido.DIREITA)
-	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.X, Direcao.Sentido.ESQUERDA)
-
-	trilhos.remover_trilho(pos)
-	trilhos.configurar_trilho(pos, Direcao.Eixo.Z, Trilhos.TipoTrilho.RETO, Direcao.Sentido.CIMA)
-	trilhos.configurar_trilho(
-		pos,
-		Direcao.Eixo.Z,
-		Trilhos.TipoTrilho.CURVA,
-		Direcao.Sentido.CIMA
-	)
-	assert(
-		trilhos.get_cell_item(pos) == trilhos.ID_RETO,
-		"Uma configuracao invalida substituiu a peca que ja estava na celula."
-	)
-	trilhos.remover_trilho(pos)
 
 # Verifica se o trilho reto é colocado com a orientação esperada para seu eixo.
 func _testar_configuracao_reta(
@@ -102,7 +83,7 @@ func _testar_configuracao_reta(
 		"Orientacao incorreta para trilho reto no eixo %s." % eixo
 	)
 
-# Verifica a colocação e a orientação de uma curva com eixo e sentido compatíveis.
+# Verifica se o sentido determina a orientação da curva, independentemente do eixo.
 func _testar_configuracao_curva(
 	pos: Vector3i,
 	eixo: Direcao.Eixo,
@@ -112,28 +93,14 @@ func _testar_configuracao_curva(
 	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_CURVO,
-		"Nao foi colocada a curva para eixo %s e sentido %s." % [eixo, sentido]
+		"Nao foi colocada a curva para o sentido %s." % sentido
 	)
 	assert(
 		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(sentido, trilhos),
-		"Orientacao incorreta para curva no eixo %s e sentido %s."
-		% [eixo, sentido]
+		"Orientacao incorreta para curva com sentido %s, ignorando o eixo %s."
+		% [sentido, eixo]
 	)
 	trilhos.remover_trilho(pos)
-
-# Confirma que uma curva com eixo e sentido incompatíveis não é colocada.
-func _testar_configuracao_curva_invalida(
-	pos: Vector3i,
-	eixo: Direcao.Eixo,
-	sentido: Direcao.Sentido
-) -> void:
-	trilhos.remover_trilho(pos)
-	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
-	assert(
-		trilhos.get_cell_item(pos) == -1,
-		"Foi colocada curva com combinacao invalida: eixo %s e sentido %s."
-		% [eixo, sentido]
-	)
 
 # Testa conexões de trilhos retos em todas as direções e nos dois eixos.
 func _testar_conexoes_retas(pos: Vector3i) -> void:

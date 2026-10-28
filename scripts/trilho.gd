@@ -43,11 +43,11 @@ func configurar_trilho(posicao: Vector3i, eixoTrilho: Direcao.Eixo, tipoTrilho: 
 			_colocar_peca(posicao, ID_RETO, rotacao)
 
 		TipoTrilho.CURVA:
-			if eixoTrilho != Trilhos.eixo_da_peca(tipoTrilho, sentido):
-				print("Combinação de eixo e sentido inválida.")
+			var rotacao: float = Direcao.angulo_do_sentido(sentido)
+			if rotacao < 0.0:
+				print("Sentido inválido.")
 				return
-			var orientacao: int = Direcao.orientacao_do_sentido(sentido, self)
-			set_cell_item(posicao, ID_CURVO, orientacao)
+			_colocar_peca(posicao, ID_CURVO, rotacao)
 
 # Remove a peca da celula indicada.
 func remover_trilho(posicao: Vector3i)->void:
@@ -84,10 +84,7 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 	if itemVizinho == -1:
 		return false
 
-	var sentidoVizinho: Direcao.Sentido = Direcao.sentido_da_orientacao(
-		get_cell_item_orientation(posicaoVizinha),
-		self
-	)
+	var sentidoVizinho: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicaoVizinha), self)
 
 	if sentidoVizinho == -1:
 		return false
@@ -95,10 +92,10 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 	var ehConectavel: bool = false
 
 	if itemVizinho == ID_RETO:
-		var eixoVizinho: Direcao.Eixo = Trilhos.eixo_da_peca(TipoTrilho.RETO, sentidoVizinho)
-		if ((sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoVizinho == Direcao.Eixo.Z):
+		var eixoVizinho: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoVizinho)
+		if (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoVizinho == Direcao.Eixo.Z:
 			ehConectavel = true
-		elif ((sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoVizinho == Direcao.Eixo.X):
+		elif (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoVizinho == Direcao.Eixo.X:
 			ehConectavel = true
 
 	elif itemVizinho == ID_CURVO:
@@ -120,23 +117,24 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 
 # Usa as conexoes vizinhas para determinar a nova orientacao da curva.
 func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: Direcao.Sentido) -> Direcao.Sentido:
-	var trilhosAdjacentes: Array[Direcao.Sentido] = []
+	var trilhosAdjacentes: Direcao.Sentido = -1
 	var sentido: Direcao.Sentido = sentidoAtual
 
 	for i in range(2):
 		sentido = Direcao.proximo_sentido(sentido)
 
 		if tem_conexao(posicao, sentido):
-			trilhosAdjacentes.push_back(sentido)
+			trilhosAdjacentes = sentido
+			break
 
-	if trilhosAdjacentes.is_empty():
+	if trilhosAdjacentes == -1:
 		print("Sem trilhos adjacentes")
 		return -1
 
-	if trilhosAdjacentes[0] == Direcao.proximo_sentido(sentidoAtual):
-		return trilhosAdjacentes[0]
+	if trilhosAdjacentes == Direcao.proximo_sentido(sentidoAtual):
+		return trilhosAdjacentes
 
-	if trilhosAdjacentes[0] == Direcao.avancar_sentido(sentidoAtual, 2):
+	if trilhosAdjacentes == Direcao.avancar_sentido(sentidoAtual, 2):
 		return Direcao.avancar_sentido(sentidoAtual, 3)
 
 	return -1
