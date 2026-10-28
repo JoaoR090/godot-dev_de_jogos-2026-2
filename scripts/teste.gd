@@ -5,13 +5,15 @@ extends Node3D
 func _ready() -> void:
 	var pos := Vector3i.ZERO
 
+	_testar_direcoes()
+
 	# Confere a colocacao e a remocao de um trilho reto.
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(
+	trilhos.configurar_trilho(
 		pos,
-		Trilhos.Eixo.EIXO_Z,
-		Trilhos.Tipo.RETO,
-		Trilhos.Sentido.CIMA
+		Direcao.Eixo.Z,
+		Trilhos.TipoTrilho.RETO,
+		Direcao.Sentido.CIMA
 	)
 	assert(trilhos.get_cell_item(pos) == trilhos.ID_RETO)
 
@@ -21,40 +23,58 @@ func _ready() -> void:
 	_testar_configuracao(pos)
 	_testar_conexoes_retas(pos)
 	_testar_conexoes_curvas(pos)
-	_testar_mudar_curva(pos)
+	_testar_atualizar_orientacao_curva(pos)
 
 	print("Todos os testes passaram.")
+
+func _testar_direcoes() -> void:
+	assert(Direcao.deslocamento(Direcao.Sentido.CIMA) == Vector3i(0, 0, -1))
+	assert(Direcao.deslocamento(Direcao.Sentido.DIREITA) == Vector3i(1, 0, 0))
+	assert(Direcao.deslocamento(Direcao.Sentido.BAIXO) == Vector3i(0, 0, 1))
+	assert(Direcao.deslocamento(Direcao.Sentido.ESQUERDA) == Vector3i(-1, 0, 0))
+	assert(
+		Direcao.proximo_sentido(Direcao.Sentido.CIMA) == Direcao.Sentido.DIREITA
+	)
+	assert(
+		Direcao.sentido_oposto(Direcao.Sentido.CIMA) == Direcao.Sentido.BAIXO
+	)
+	assert(
+		Trilhos.eixo_da_peca(
+			Trilhos.TipoTrilho.RETO,
+			Direcao.Sentido.CIMA
+		) == Direcao.Eixo.Z
+	)
 
 func _testar_configuracao(pos: Vector3i) -> void:
 	print("Testando configuracao de trilhos...")
 
-	_testar_configuracao_reta(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.CIMA)
-	_testar_configuracao_reta(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.DIREITA)
+	_testar_configuracao_reta(pos, Direcao.Eixo.Z, Direcao.Sentido.CIMA)
+	_testar_configuracao_reta(pos, Direcao.Eixo.X, Direcao.Sentido.DIREITA)
 	_testar_configuracao_curva(
-		pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.DIREITA
+		pos, Direcao.Eixo.Z, Direcao.Sentido.DIREITA
 	)
 	_testar_configuracao_curva(
-		pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.ESQUERDA
+		pos, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA
 	)
 	_testar_configuracao_curva(
-		pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.CIMA
+		pos, Direcao.Eixo.X, Direcao.Sentido.CIMA
 	)
 	_testar_configuracao_curva(
-		pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO
+		pos, Direcao.Eixo.X, Direcao.Sentido.BAIXO
 	)
 
-	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.CIMA)
-	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.BAIXO)
-	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.DIREITA)
-	_testar_configuracao_curva_invalida(pos, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.ESQUERDA)
+	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.Z, Direcao.Sentido.CIMA)
+	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.Z, Direcao.Sentido.BAIXO)
+	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.X, Direcao.Sentido.DIREITA)
+	_testar_configuracao_curva_invalida(pos, Direcao.Eixo.X, Direcao.Sentido.ESQUERDA)
 
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
-	trilhos.configurar(
+	trilhos.configurar_trilho(pos, Direcao.Eixo.Z, Trilhos.TipoTrilho.RETO, Direcao.Sentido.CIMA)
+	trilhos.configurar_trilho(
 		pos,
-		Trilhos.Eixo.EIXO_Z,
-		Trilhos.Tipo.CURVA,
-		Trilhos.Sentido.CIMA
+		Direcao.Eixo.Z,
+		Trilhos.TipoTrilho.CURVA,
+		Direcao.Sentido.CIMA
 	)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_RETO,
@@ -64,33 +84,33 @@ func _testar_configuracao(pos: Vector3i) -> void:
 
 func _testar_configuracao_reta(
 	pos: Vector3i,
-	eixo: Trilhos.Eixo,
-	orientacao: Trilhos.Sentido
+	eixo: Direcao.Eixo,
+	orientacao: Direcao.Sentido
 ) -> void:
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
+	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.RETO, Direcao.Sentido.CIMA)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_RETO,
 		"Nao foi colocado o trilho reto."
 	)
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(orientacao),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(orientacao, trilhos),
 		"Orientacao incorreta para trilho reto no eixo %s." % eixo
 	)
 
 func _testar_configuracao_curva(
 	pos: Vector3i,
-	eixo: Trilhos.Eixo,
-	sentido: Trilhos.Sentido
+	eixo: Direcao.Eixo,
+	sentido: Direcao.Sentido
 ) -> void:
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
+	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
 	assert(
 		trilhos.get_cell_item(pos) == trilhos.ID_CURVO,
 		"Nao foi colocada a curva para eixo %s e sentido %s." % [eixo, sentido]
 	)
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(sentido),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(sentido, trilhos),
 		"Orientacao incorreta para curva no eixo %s e sentido %s."
 		% [eixo, sentido]
 	)
@@ -98,11 +118,11 @@ func _testar_configuracao_curva(
 
 func _testar_configuracao_curva_invalida(
 	pos: Vector3i,
-	eixo: Trilhos.Eixo,
-	sentido: Trilhos.Sentido
+	eixo: Direcao.Eixo,
+	sentido: Direcao.Sentido
 ) -> void:
 	trilhos.remover_trilho(pos)
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
+	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
 	assert(
 		trilhos.get_cell_item(pos) == -1,
 		"Foi colocada curva com combinacao invalida: eixo %s e sentido %s."
@@ -111,54 +131,54 @@ func _testar_configuracao_curva_invalida(
 
 func _testar_conexoes_retas(pos: Vector3i) -> void:
 	print("Testando conexoes com trilhos retos...")
-	var celula_acima := _posicao_vizinha(pos, Trilhos.Sentido.CIMA)
+	var celula_acima := _posicao_vizinha(pos, Direcao.Sentido.CIMA)
 	trilhos.remover_trilho(celula_acima)
 	assert(
-		not trilhos.tem_conexao(pos, Trilhos.Sentido.CIMA),
+		not trilhos.tem_conexao(pos, Direcao.Sentido.CIMA),
 		"Foi indicada conexao apesar de nao haver trilho vizinho."
 	)
 
-	_testar_conexao_reta(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_Z, true)
-	_testar_conexao_reta(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_X, false)
-	_testar_conexao_reta(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_Z, true)
-	_testar_conexao_reta(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_X, false)
-	_testar_conexao_reta(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_X, true)
-	_testar_conexao_reta(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_Z, false)
-	_testar_conexao_reta(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_X, true)
-	_testar_conexao_reta(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_Z, false)
+	_testar_conexao_reta(pos, Direcao.Sentido.CIMA, Direcao.Eixo.Z, true)
+	_testar_conexao_reta(pos, Direcao.Sentido.CIMA, Direcao.Eixo.X, false)
+	_testar_conexao_reta(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.Z, true)
+	_testar_conexao_reta(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.X, false)
+	_testar_conexao_reta(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.X, true)
+	_testar_conexao_reta(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.Z, false)
+	_testar_conexao_reta(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.X, true)
+	_testar_conexao_reta(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.Z, false)
 
 func _testar_conexoes_curvas(pos: Vector3i) -> void:
 	print("Testando conexoes com trilhos curvos...")
-	_testar_conexao_curva(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.ESQUERDA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.CIMA, false)
-	_testar_conexao_curva(pos, Trilhos.Sentido.CIMA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.DIREITA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.CIMA, Direcao.Eixo.X, Direcao.Sentido.BAIXO, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.CIMA, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.CIMA, Direcao.Eixo.X, Direcao.Sentido.CIMA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.CIMA, Direcao.Eixo.Z, Direcao.Sentido.DIREITA, false)
 
-	_testar_conexao_curva(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.ESQUERDA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.CIMA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.DIREITA, false)
-	_testar_conexao_curva(pos, Trilhos.Sentido.DIREITA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.X, Direcao.Sentido.CIMA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.Z, Direcao.Sentido.DIREITA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.DIREITA, Direcao.Eixo.X, Direcao.Sentido.BAIXO, false)
 
-	_testar_conexao_curva(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.CIMA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.DIREITA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO, false)
-	_testar_conexao_curva(pos, Trilhos.Sentido.BAIXO, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.ESQUERDA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.X, Direcao.Sentido.CIMA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.Z, Direcao.Sentido.DIREITA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.X, Direcao.Sentido.BAIXO, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.BAIXO, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA, false)
 
-	_testar_conexao_curva(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.DIREITA, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.BAIXO, true)
-	_testar_conexao_curva(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_Z, Trilhos.Sentido.ESQUERDA, false)
-	_testar_conexao_curva(pos, Trilhos.Sentido.ESQUERDA, Trilhos.Eixo.EIXO_X, Trilhos.Sentido.CIMA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.Z, Direcao.Sentido.DIREITA, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.X, Direcao.Sentido.BAIXO, true)
+	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA, false)
+	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.X, Direcao.Sentido.CIMA, false)
 
 func _testar_conexao_reta(
 	pos: Vector3i,
-	sentido: Trilhos.Sentido,
-	eixo: Trilhos.Eixo,
+	sentido: Direcao.Sentido,
+	eixo: Direcao.Eixo,
 	esperado: bool
 ) -> void:
 	var vizinha := _posicao_vizinha(pos, sentido)
 
 	trilhos.remover_trilho(vizinha)
-	trilhos.configurar(vizinha, eixo, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
+	trilhos.configurar_trilho(vizinha, eixo, Trilhos.TipoTrilho.RETO, Direcao.Sentido.CIMA)
 
 	var resultado: bool = trilhos.tem_conexao(pos, sentido)
 	assert(
@@ -170,15 +190,15 @@ func _testar_conexao_reta(
 
 func _testar_conexao_curva(
 	pos: Vector3i,
-	sentidoVizinho: Trilhos.Sentido,
-	eixoCurva: Trilhos.Eixo,
-	orientacaoCurva: Trilhos.Sentido,
+	sentidoVizinho: Direcao.Sentido,
+	eixoCurva: Direcao.Eixo,
+	orientacaoCurva: Direcao.Sentido,
 	esperado: bool
 ) -> void:
 	var vizinha := _posicao_vizinha(pos, sentidoVizinho)
 
 	trilhos.remover_trilho(vizinha)
-	trilhos.configurar(vizinha, eixoCurva, Trilhos.Tipo.CURVA, orientacaoCurva)
+	trilhos.configurar_trilho(vizinha, eixoCurva, Trilhos.TipoTrilho.CURVA, orientacaoCurva)
 
 	var resultado: bool = trilhos.tem_conexao(pos, sentidoVizinho)
 	assert(
@@ -188,87 +208,87 @@ func _testar_conexao_curva(
 	)
 	trilhos.remover_trilho(vizinha)
 
-func _testar_mudar_curva(pos: Vector3i) -> void:
+func _testar_atualizar_orientacao_curva(pos: Vector3i) -> void:
 	print("Testando rotacao de curvas...")
-	var vizinha_direita := _posicao_vizinha(pos, Trilhos.Sentido.DIREITA)
-	var vizinha_abaixo := _posicao_vizinha(pos, Trilhos.Sentido.BAIXO)
+	var vizinha_direita := _posicao_vizinha(pos, Direcao.Sentido.DIREITA)
+	var vizinha_abaixo := _posicao_vizinha(pos, Direcao.Sentido.BAIXO)
 
 	trilhos.remover_trilho(pos)
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 	assert(
 		trilhos.get_cell_item(pos) == -1,
-		"mudar_curva colocou uma peca em uma celula vazia."
+		"atualizar_orientacao_curva colocou uma peca em uma celula vazia."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_Z, Trilhos.Tipo.RETO, Trilhos.Sentido.CIMA)
+	trilhos.configurar_trilho(pos, Direcao.Eixo.Z, Trilhos.TipoTrilho.RETO, Direcao.Sentido.CIMA)
 	var orientacao_reta: int = trilhos.get_cell_item_orientation(pos)
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 	assert(
 		trilhos.get_cell_item_orientation(pos) == orientacao_reta,
-		"mudar_curva alterou a orientacao de um trilho reto."
+		"atualizar_orientacao_curva alterou a orientacao de um trilho reto."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
-	trilhos.configurar(
+	trilhos.configurar_trilho(pos, Direcao.Eixo.X, Trilhos.TipoTrilho.CURVA, Direcao.Sentido.CIMA)
+	trilhos.configurar_trilho(
 		vizinha_direita,
-		Trilhos.Eixo.EIXO_X,
-		Trilhos.Tipo.CURVA,
-		Trilhos.Sentido.CIMA
+		Direcao.Eixo.X,
+		Trilhos.TipoTrilho.CURVA,
+		Direcao.Sentido.CIMA
 	)
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.DIREITA),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(Direcao.Sentido.DIREITA, trilhos),
 		"A curva nao girou em direcao ao trilho da direita."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
+	trilhos.configurar_trilho(pos, Direcao.Eixo.X, Trilhos.TipoTrilho.CURVA, Direcao.Sentido.CIMA)
 	trilhos.remover_trilho(vizinha_direita)
-	trilhos.configurar(
+	trilhos.configurar_trilho(
 		vizinha_abaixo,
-		Trilhos.Eixo.EIXO_X,
-		Trilhos.Tipo.CURVA,
-		Trilhos.Sentido.CIMA
+		Direcao.Eixo.X,
+		Trilhos.TipoTrilho.CURVA,
+		Direcao.Sentido.CIMA
 	)
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.ESQUERDA),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(Direcao.Sentido.ESQUERDA, trilhos),
 		"A curva nao girou para o lado oposto ao trilho abaixo."
 	)
 
-	trilhos.configurar(pos, Trilhos.Eixo.EIXO_X, Trilhos.Tipo.CURVA, Trilhos.Sentido.CIMA)
+	trilhos.configurar_trilho(pos, Direcao.Eixo.X, Trilhos.TipoTrilho.CURVA, Direcao.Sentido.CIMA)
 	trilhos.remover_trilho(vizinha_abaixo)
 	var orientacao_sem_vizinhos: int = trilhos.get_cell_item_orientation(pos)
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 	assert(
 		trilhos.get_cell_item_orientation(pos) == orientacao_sem_vizinhos,
 		"A curva mudou de orientacao sem trilhos vizinhos."
 	)
 
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.CIMA, Trilhos.Sentido.DIREITA, Trilhos.Sentido.DIREITA
+		pos, Direcao.Sentido.CIMA, Direcao.Sentido.DIREITA, Direcao.Sentido.DIREITA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.CIMA, Trilhos.Sentido.BAIXO, Trilhos.Sentido.ESQUERDA
+		pos, Direcao.Sentido.CIMA, Direcao.Sentido.BAIXO, Direcao.Sentido.ESQUERDA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.DIREITA, Trilhos.Sentido.BAIXO, Trilhos.Sentido.BAIXO
+		pos, Direcao.Sentido.DIREITA, Direcao.Sentido.BAIXO, Direcao.Sentido.BAIXO
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.DIREITA, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.CIMA
+		pos, Direcao.Sentido.DIREITA, Direcao.Sentido.ESQUERDA, Direcao.Sentido.CIMA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.BAIXO, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.ESQUERDA
+		pos, Direcao.Sentido.BAIXO, Direcao.Sentido.ESQUERDA, Direcao.Sentido.ESQUERDA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.BAIXO, Trilhos.Sentido.CIMA, Trilhos.Sentido.DIREITA
+		pos, Direcao.Sentido.BAIXO, Direcao.Sentido.CIMA, Direcao.Sentido.DIREITA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.CIMA, Trilhos.Sentido.CIMA
+		pos, Direcao.Sentido.ESQUERDA, Direcao.Sentido.CIMA, Direcao.Sentido.CIMA
 	)
 	_testar_rotacao_curva_com_vizinho(
-		pos, Trilhos.Sentido.ESQUERDA, Trilhos.Sentido.DIREITA, Trilhos.Sentido.BAIXO
+		pos, Direcao.Sentido.ESQUERDA, Direcao.Sentido.DIREITA, Direcao.Sentido.BAIXO
 	)
 	_testar_rotacao_curva_com_dois_vizinhos(pos)
 
@@ -278,9 +298,9 @@ func _testar_mudar_curva(pos: Vector3i) -> void:
 
 func _testar_rotacao_curva_com_vizinho(
 	pos: Vector3i,
-	orientacaoInicial: Trilhos.Sentido,
-	ladoVizinho: Trilhos.Sentido,
-	orientacaoEsperada: Trilhos.Sentido
+	orientacaoInicial: Direcao.Sentido,
+	ladoVizinho: Direcao.Sentido,
+	orientacaoEsperada: Direcao.Sentido
 ) -> void:
 	var celulaVizinha := _posicao_vizinha(pos, ladoVizinho)
 	trilhos.remover_trilho(pos)
@@ -288,10 +308,10 @@ func _testar_rotacao_curva_com_vizinho(
 
 	_configurar_curva(pos, orientacaoInicial)
 	_configurar_curva(celulaVizinha, _sentido_de_entrada(ladoVizinho))
-	trilhos.mudar_curva(pos)
+	trilhos.atualizar_orientacao_curva(pos)
 
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(orientacaoEsperada),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(orientacaoEsperada, trilhos),
 		"Com orientacao inicial %s e vizinho em %s, esperava orientacao %s."
 		% [orientacaoInicial, ladoVizinho, orientacaoEsperada]
 	)
@@ -300,19 +320,19 @@ func _testar_rotacao_curva_com_vizinho(
 	trilhos.remover_trilho(celulaVizinha)
 
 func _testar_rotacao_curva_com_dois_vizinhos(pos: Vector3i) -> void:
-	var vizinha_direita := _posicao_vizinha(pos, Trilhos.Sentido.DIREITA)
-	var vizinha_abaixo := _posicao_vizinha(pos, Trilhos.Sentido.BAIXO)
+	var vizinha_direita := _posicao_vizinha(pos, Direcao.Sentido.DIREITA)
+	var vizinha_abaixo := _posicao_vizinha(pos, Direcao.Sentido.BAIXO)
 	trilhos.remover_trilho(pos)
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
 
-	_configurar_curva(pos, Trilhos.Sentido.CIMA)
-	_configurar_curva(vizinha_direita, _sentido_de_entrada(Trilhos.Sentido.DIREITA))
-	_configurar_curva(vizinha_abaixo, _sentido_de_entrada(Trilhos.Sentido.BAIXO))
-	trilhos.mudar_curva(pos)
+	_configurar_curva(pos, Direcao.Sentido.CIMA)
+	_configurar_curva(vizinha_direita, _sentido_de_entrada(Direcao.Sentido.DIREITA))
+	_configurar_curva(vizinha_abaixo, _sentido_de_entrada(Direcao.Sentido.BAIXO))
+	trilhos.atualizar_orientacao_curva(pos)
 
 	assert(
-		trilhos.get_cell_item_orientation(pos) == _orientacao_para_sentido(Trilhos.Sentido.DIREITA),
+		trilhos.get_cell_item_orientation(pos) == Direcao.orientacao_do_sentido(Direcao.Sentido.DIREITA, trilhos),
 		"Com duas conexoes candidatas, a curva deveria priorizar a direita."
 	)
 
@@ -320,51 +340,12 @@ func _testar_rotacao_curva_com_dois_vizinhos(pos: Vector3i) -> void:
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
 
-func _configurar_curva(pos: Vector3i, sentido: Trilhos.Sentido) -> void:
-	var eixo: Trilhos.Eixo
-	match sentido:
-		Trilhos.Sentido.CIMA, Trilhos.Sentido.BAIXO:
-			eixo = Trilhos.Eixo.EIXO_X
-		Trilhos.Sentido.DIREITA, Trilhos.Sentido.ESQUERDA:
-			eixo = Trilhos.Eixo.EIXO_Z
+func _configurar_curva(pos: Vector3i, sentido: Direcao.Sentido) -> void:
+	var eixo: Direcao.Eixo = Trilhos.eixo_da_peca(Trilhos.TipoTrilho.CURVA, sentido)
+	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
 
-	trilhos.configurar(pos, eixo, Trilhos.Tipo.CURVA, sentido)
+func _sentido_de_entrada(ladoVizinho: Direcao.Sentido) -> Direcao.Sentido:
+	return Direcao.sentido_oposto(ladoVizinho)
 
-func _sentido_de_entrada(ladoVizinho: Trilhos.Sentido) -> Trilhos.Sentido:
-	match ladoVizinho:
-		Trilhos.Sentido.CIMA:
-			return Trilhos.Sentido.BAIXO
-		Trilhos.Sentido.DIREITA:
-			return Trilhos.Sentido.ESQUERDA
-		Trilhos.Sentido.BAIXO:
-			return Trilhos.Sentido.CIMA
-		Trilhos.Sentido.ESQUERDA:
-			return Trilhos.Sentido.DIREITA
-	return Trilhos.Sentido.CIMA
-
-func _posicao_vizinha(pos: Vector3i, sentido: Trilhos.Sentido) -> Vector3i:
-	match sentido:
-		Trilhos.Sentido.CIMA:
-			pos.z -= 1
-		Trilhos.Sentido.DIREITA:
-			pos.x += 1
-		Trilhos.Sentido.BAIXO:
-			pos.z += 1
-		Trilhos.Sentido.ESQUERDA:
-			pos.x -= 1
-	return pos
-
-func _orientacao_para_sentido(sentido: Trilhos.Sentido) -> int:
-	var angulo: float = 0.0
-	match sentido:
-		Trilhos.Sentido.CIMA:
-			angulo = 0.0
-		Trilhos.Sentido.DIREITA:
-			angulo = 90.0
-		Trilhos.Sentido.BAIXO:
-			angulo = 180.0
-		Trilhos.Sentido.ESQUERDA:
-			angulo = 270.0
-		_:
-			return -1
-	return trilhos.get_orthogonal_index_from_basis(Basis(Vector3.UP, deg_to_rad(angulo)))
+func _posicao_vizinha(pos: Vector3i, sentido: Direcao.Sentido) -> Vector3i:
+	return pos + Direcao.deslocamento(sentido)

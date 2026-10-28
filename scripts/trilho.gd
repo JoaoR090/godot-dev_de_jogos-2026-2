@@ -1,125 +1,93 @@
 class_name Trilhos
 extends GridMap
 
-# Eixo principal dos trilhos retos.
-enum Eixo {
-	EIXO_Z,
-	EIXO_X
-}
-
-# Tipos de peca que podem ser colocados no GridMap.
-enum Tipo {
+enum TipoTrilho {
 	CURVA,
 	RETO
 }
 
-# Direcoes usadas para orientar as pecas e verificar conexoes.
-enum Sentido {
-	CIMA,
-	BAIXO,
-	DIREITA,
-	ESQUERDA
-}
-
 # IDs dos modelos correspondentes na biblioteca do GridMap.
-@export var ID_RETO: int = 0
-@export var ID_CURVO: int = 1
+var ID_RETO: int = 0
+var ID_CURVO: int = 1
+
+static func eixo_da_peca(tipo: TipoTrilho, sentido: Direcao.Sentido) -> Direcao.Eixo:
+	var sentido_vertical: bool = (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO)
+	var sentido_horizontal: bool = (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA)
+
+	match tipo:
+		TipoTrilho.RETO:
+			if sentido_vertical:
+				return Direcao.Eixo.Z
+			if sentido_horizontal:
+				return Direcao.Eixo.X
+		TipoTrilho.CURVA:
+			if sentido_vertical:
+				return Direcao.Eixo.X
+			if sentido_horizontal:
+				return Direcao.Eixo.Z
+	return -1
 
 
-func tem_trilho(posicao: Vector3i):
+func tem_trilho(posicao: Vector3i) -> bool:
 	var item: int = get_cell_item(posicao)
 	return item == ID_RETO or item == ID_CURVO
 
 # Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
-func configurar(posicao: Vector3i, eixoTrilho: Eixo, tipoTrilho: Tipo, sentido: Sentido) -> void:
+func configurar_trilho(posicao: Vector3i, eixoTrilho: Direcao.Eixo, tipoTrilho: Trilhos.TipoTrilho, sentido: Direcao.Sentido) -> void:
 	match tipoTrilho:
-		Tipo.RETO:
-			var rotacao: float
-			if eixoTrilho == Eixo.EIXO_X:
-				rotacao = 90.0
-			elif eixoTrilho == Eixo.EIXO_Z:
-				rotacao = 0.0
-			else:
+		Trilhos.TipoTrilho.RETO:
+			var rotacao: float = Direcao.angulo_do_eixo(eixoTrilho)
+			if rotacao < 0.0:
 				print("Eixo inválido.")
 				return
 			_colocar_peca(posicao, ID_RETO, rotacao)
 
-		Tipo.CURVA:
-			var resultado: float
-			var combinacao_valida: bool = true
-
-			match eixoTrilho:
-				Eixo.EIXO_Z:
-					match sentido:
-						Sentido.DIREITA:
-							resultado = 90.0
-						Sentido.ESQUERDA:
-							resultado = 270.0
-						_:
-							combinacao_valida = false
-
-				Eixo.EIXO_X:
-					match sentido:
-						Sentido.CIMA:
-							resultado = 0.0
-						Sentido.BAIXO:
-							resultado = 180.0
-						_:
-							combinacao_valida = false
-				_:
-					combinacao_valida = false
-
-			if not combinacao_valida:
+		Trilhos.TipoTrilho.CURVA:
+			if eixoTrilho != Trilhos.eixo_da_peca(tipoTrilho, sentido):
 				print("Combinação de eixo e sentido inválida.")
 				return
-
-			_colocar_peca(posicao, ID_CURVO, resultado)
+			var orientacao: int = Direcao.orientacao_do_sentido(sentido, self)
+			set_cell_item(posicao, ID_CURVO, orientacao)
 
 # Remove a peca da celula indicada.
 func remover_trilho(posicao: Vector3i)->void:
 	set_cell_item(posicao, -1)
 
 # Gira a curva para uma orientacao compativel com os trilhos vizinhos.
-func mudar_curva(posicao: Vector3i) -> void:
+func atualizar_orientacao_curva(posicao: Vector3i) -> void:
 	var item: int = get_cell_item(posicao)
 
 	if item != ID_CURVO:
 		return
 
 	var orientacao: int = get_cell_item_orientation(posicao)
-	var sentidoAtual: int = _orientacao_para_sentido(orientacao)
+	var sentidoAtual: Direcao.Sentido = Direcao.sentido_da_orientacao(orientacao, self)
 
 	if sentidoAtual == -1:
 		return
 
-	var novoSentido: int = _calcular_sentido_curva(posicao, sentidoAtual)
+	var novoSentido: Direcao.Sentido = _calcular_sentido_curva(posicao, sentidoAtual)
 
 	if novoSentido == -1:
 		return
 
-	var novaOrientacao: int = _sentido_para_orientacao(novoSentido)
+	var novaOrientacao: int = Direcao.orientacao_do_sentido(novoSentido, self)
 
 	set_cell_item(posicao, item, novaOrientacao)
 
 # Verifica se a celula vizinha na direcao indicada forma uma conexao valida.
-func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
-	var posicaoVizinha: Vector3i = posicao
-	match sentido:
-		Sentido.CIMA:
-			posicaoVizinha.z -= 1
-		Sentido.DIREITA:
-			posicaoVizinha.x += 1
-		Sentido.BAIXO:
-			posicaoVizinha.z += 1
-		Sentido.ESQUERDA:
-			posicaoVizinha.x -= 1
+func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
+	var posicaoVizinha: Vector3i = posicao + Direcao.deslocamento(sentido)
 
 	var itemVizinho = get_cell_item(posicaoVizinha)
 
 	if itemVizinho == -1:
 		return false
 
-	var sentidoVizinho: int = _orientacao_para_sentido(get_cell_item_orientation(posicaoVizinha))
+	var sentidoVizinho: Direcao.Sentido = Direcao.sentido_da_orientacao(
+		get_cell_item_orientation(posicaoVizinha),
+		self
+	)
 
 	if sentidoVizinho == -1:
 		return false
@@ -127,116 +95,36 @@ func tem_conexao(posicao: Vector3i, sentido: Sentido) -> bool:
 	var ehConectavel: bool = false
 
 	if itemVizinho == ID_RETO:
-		var eixoVizinho: Eixo = _sentido_para_eixo(sentidoVizinho, Tipo.RETO)
-		if (sentido == Sentido.CIMA or sentido == Sentido.BAIXO) and eixoVizinho == Eixo.EIXO_Z:
+		var eixoVizinho: Direcao.Eixo = Trilhos.eixo_da_peca(Trilhos.TipoTrilho.RETO, sentidoVizinho)
+		if ((sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoVizinho == Direcao.Eixo.Z):
 			ehConectavel = true
-		elif (sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA) and eixoVizinho == Eixo.EIXO_X:
+		elif ((sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoVizinho == Direcao.Eixo.X):
 			ehConectavel = true
 
 	elif itemVizinho == ID_CURVO:
 		match sentido:
-			Sentido.CIMA:
-				if sentidoVizinho == Sentido.BAIXO or sentidoVizinho == Sentido.ESQUERDA:
+			Direcao.Sentido.CIMA:
+				if sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA:
 					ehConectavel = true
-			Sentido.DIREITA:
-				if sentidoVizinho == Sentido.ESQUERDA or sentidoVizinho == Sentido.CIMA:
+			Direcao.Sentido.DIREITA:
+				if sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA:
 					ehConectavel = true
-			Sentido.BAIXO:
-				if sentidoVizinho == Sentido.CIMA or sentidoVizinho == Sentido.DIREITA:
+			Direcao.Sentido.BAIXO:
+				if sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA:
 					ehConectavel = true
-			Sentido.ESQUERDA:
-				if sentidoVizinho == Sentido.DIREITA or sentidoVizinho == Sentido.BAIXO:
+			Direcao.Sentido.ESQUERDA:
+				if sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO:
 					ehConectavel = true
 
 	return ehConectavel
 
-# Converte uma direcao em eixo, considerando o tipo de peca.
-func _sentido_para_eixo(sentido: Sentido, tipo: Tipo) -> Eixo:
-	var eixo: Eixo
-	match tipo:
-		Tipo.RETO:
-			if sentido == Sentido.CIMA or sentido == Sentido.BAIXO:
-				eixo = Eixo.EIXO_Z
-			elif sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA:
-				eixo = Eixo.EIXO_X
-		Tipo.CURVA:
-			if sentido == Sentido.CIMA or sentido == Sentido.BAIXO:
-				eixo = Eixo.EIXO_X
-			elif sentido == Sentido.DIREITA or sentido == Sentido.ESQUERDA:
-				eixo = Eixo.EIXO_Z
-	return eixo
-
-# Converte a orientacao armazenada pelo GridMap na direcao correspondente.
-func _orientacao_para_sentido(orientacao: int) -> int:
-	var angulo: float = _orientacao_para_angulo(orientacao)
-
-	match roundi(angulo):
-		0:
-			return Sentido.CIMA
-		90:
-			return Sentido.DIREITA
-		180:
-			return Sentido.BAIXO
-		270:
-			return Sentido.ESQUERDA
-		_:
-			return -1
-
-# Converte uma direcao em um indice de orientacao do GridMap.
-func _sentido_para_orientacao(sentido: int) -> int:
-	var angulo: float
-
-	match sentido:
-		Sentido.CIMA:
-			angulo = 0.0
-		Sentido.DIREITA:
-			angulo = 90.0
-		Sentido.BAIXO:
-			angulo = 180.0
-		Sentido.ESQUERDA:
-			angulo = 270.0
-		_:
-			return -1
-
-	return _angulo_para_orientacao(angulo)
-
-# Extrai o angulo Y da orientacao ortogonal usada pelo GridMap.
-func _orientacao_para_angulo(orientacao: int) -> float:
-	var base := get_basis_with_orthogonal_index(orientacao)
-	var angulo: float = rad_to_deg(base.get_euler().y)
-	return fposmod(angulo, 360.0)
-
-# Converte um angulo Y em indice de orientacao do GridMap.
-func _angulo_para_orientacao(angulo: float) -> int:
-	var base := Basis(Vector3.UP, deg_to_rad(angulo))
-	return get_orthogonal_index_from_basis(base)
-
-# Avanca varias posicoes na sequencia circular das direcoes.
-func _proximo_sentido_n(sentido: Sentido, n_vezes: int) -> Sentido:
-	for i  in range(n_vezes):
-		sentido = _proximo_sentido(sentido)
-	return sentido
-
-# Avanca uma posicao: cima, direita, baixo, esquerda e novamente cima.
-func _proximo_sentido(sentido: Sentido) -> Sentido:
-	match sentido:
-		Sentido.CIMA:
-			return Sentido.DIREITA
-		Sentido.DIREITA:
-			return Sentido.BAIXO
-		Sentido.BAIXO:
-			return Sentido.ESQUERDA
-		Sentido.ESQUERDA:
-			return Sentido.CIMA
-	return sentido
-
 # Usa as conexoes vizinhas para determinar a nova orientacao da curva.
-func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: int) -> int:
-	var trilhosAdjacentes: Array[Sentido] = []
-	var sentido: int = sentidoAtual
+func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: Direcao.Sentido) -> Direcao.Sentido:
+	var trilhosAdjacentes: Array[Direcao.Sentido] = []
+	var sentido: Direcao.Sentido = sentidoAtual
 
 	for i in range(2):
-		sentido = _proximo_sentido(sentido)
+		sentido = Direcao.proximo_sentido(sentido)
 
 		if tem_conexao(posicao, sentido):
 			trilhosAdjacentes.push_back(sentido)
@@ -245,16 +133,15 @@ func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: int) -> int:
 		print("Sem trilhos adjacentes")
 		return -1
 
-	if trilhosAdjacentes[0] == _proximo_sentido(sentidoAtual):
+	if trilhosAdjacentes[0] == Direcao.proximo_sentido(sentidoAtual):
 		return trilhosAdjacentes[0]
 
-	if trilhosAdjacentes[0] == _proximo_sentido_n(sentidoAtual, 2):
-		return _proximo_sentido_n(sentidoAtual, 3)
+	if trilhosAdjacentes[0] == Direcao.avancar_sentido(sentidoAtual, 2):
+		return Direcao.avancar_sentido(sentidoAtual, 3)
 
 	return -1
 
 # Aplica uma peca na celula usando o angulo informado para sua rotacao.
 func _colocar_peca(posicao: Vector3i, idPeca: int, rotacaoY: float) -> void:
-	var baseRotacao := Basis(Vector3.UP, deg_to_rad(rotacaoY))
-	var orientacao := get_orthogonal_index_from_basis(baseRotacao)
+	var orientacao: int = Direcao.orientacao_do_angulo(rotacaoY, self)
 	set_cell_item(posicao, idPeca, orientacao)
