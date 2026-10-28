@@ -2,6 +2,7 @@ extends Node3D
 
 @onready var trilhos: Trilhos = $Trilhos
 
+# Executa os testes de direções, configuração, conexões e rotação das curvas.
 func _ready() -> void:
 	var pos := Vector3i.ZERO
 
@@ -27,6 +28,7 @@ func _ready() -> void:
 
 	print("Todos os testes passaram.")
 
+# Confere os deslocamentos, a ordem dos sentidos, o oposto e o eixo de uma peça.
 func _testar_direcoes() -> void:
 	assert(Direcao.deslocamento(Direcao.Sentido.CIMA) == Vector3i(0, 0, -1))
 	assert(Direcao.deslocamento(Direcao.Sentido.DIREITA) == Vector3i(1, 0, 0))
@@ -45,6 +47,7 @@ func _testar_direcoes() -> void:
 		) == Direcao.Eixo.Z
 	)
 
+# Executa casos válidos e inválidos de configuração de trilhos.
 func _testar_configuracao(pos: Vector3i) -> void:
 	print("Testando configuracao de trilhos...")
 
@@ -82,6 +85,7 @@ func _testar_configuracao(pos: Vector3i) -> void:
 	)
 	trilhos.remover_trilho(pos)
 
+# Verifica se o trilho reto é colocado com a orientação esperada para seu eixo.
 func _testar_configuracao_reta(
 	pos: Vector3i,
 	eixo: Direcao.Eixo,
@@ -98,6 +102,7 @@ func _testar_configuracao_reta(
 		"Orientacao incorreta para trilho reto no eixo %s." % eixo
 	)
 
+# Verifica a colocação e a orientação de uma curva com eixo e sentido compatíveis.
 func _testar_configuracao_curva(
 	pos: Vector3i,
 	eixo: Direcao.Eixo,
@@ -116,6 +121,7 @@ func _testar_configuracao_curva(
 	)
 	trilhos.remover_trilho(pos)
 
+# Confirma que uma curva com eixo e sentido incompatíveis não é colocada.
 func _testar_configuracao_curva_invalida(
 	pos: Vector3i,
 	eixo: Direcao.Eixo,
@@ -129,6 +135,7 @@ func _testar_configuracao_curva_invalida(
 		% [eixo, sentido]
 	)
 
+# Testa conexões de trilhos retos em todas as direções e nos dois eixos.
 func _testar_conexoes_retas(pos: Vector3i) -> void:
 	print("Testando conexoes com trilhos retos...")
 	var celula_acima := _posicao_vizinha(pos, Direcao.Sentido.CIMA)
@@ -147,6 +154,7 @@ func _testar_conexoes_retas(pos: Vector3i) -> void:
 	_testar_conexao_reta(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.X, true)
 	_testar_conexao_reta(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.Z, false)
 
+# Testa combinações de conexão válidas e inválidas para curvas vizinhas.
 func _testar_conexoes_curvas(pos: Vector3i) -> void:
 	print("Testando conexoes com trilhos curvos...")
 	_testar_conexao_curva(pos, Direcao.Sentido.CIMA, Direcao.Eixo.X, Direcao.Sentido.BAIXO, true)
@@ -169,6 +177,7 @@ func _testar_conexoes_curvas(pos: Vector3i) -> void:
 	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.Z, Direcao.Sentido.ESQUERDA, false)
 	_testar_conexao_curva(pos, Direcao.Sentido.ESQUERDA, Direcao.Eixo.X, Direcao.Sentido.CIMA, false)
 
+# Configura um trilho reto vizinho e compara a conexão obtida com o resultado esperado.
 func _testar_conexao_reta(
 	pos: Vector3i,
 	sentido: Direcao.Sentido,
@@ -188,6 +197,7 @@ func _testar_conexao_reta(
 	)
 	trilhos.remover_trilho(vizinha)
 
+# Configura uma curva vizinha e compara a conexão obtida com o resultado esperado.
 func _testar_conexao_curva(
 	pos: Vector3i,
 	sentidoVizinho: Direcao.Sentido,
@@ -208,6 +218,7 @@ func _testar_conexao_curva(
 	)
 	trilhos.remover_trilho(vizinha)
 
+# Verifica a atualização da curva sem vizinhos, com vizinhos e com duas conexões candidatas.
 func _testar_atualizar_orientacao_curva(pos: Vector3i) -> void:
 	print("Testando rotacao de curvas...")
 	var vizinha_direita := _posicao_vizinha(pos, Direcao.Sentido.DIREITA)
@@ -296,6 +307,7 @@ func _testar_atualizar_orientacao_curva(pos: Vector3i) -> void:
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
 
+# Confere a orientação escolhida para a curva em cada caso com um único vizinho.
 func _testar_rotacao_curva_com_vizinho(
 	pos: Vector3i,
 	orientacaoInicial: Direcao.Sentido,
@@ -319,6 +331,7 @@ func _testar_rotacao_curva_com_vizinho(
 	trilhos.remover_trilho(pos)
 	trilhos.remover_trilho(celulaVizinha)
 
+# Confirma que, entre duas conexões candidatas, a curva segue a prioridade definida.
 func _testar_rotacao_curva_com_dois_vizinhos(pos: Vector3i) -> void:
 	var vizinha_direita := _posicao_vizinha(pos, Direcao.Sentido.DIREITA)
 	var vizinha_abaixo := _posicao_vizinha(pos, Direcao.Sentido.BAIXO)
@@ -340,12 +353,15 @@ func _testar_rotacao_curva_com_dois_vizinhos(pos: Vector3i) -> void:
 	trilhos.remover_trilho(vizinha_direita)
 	trilhos.remover_trilho(vizinha_abaixo)
 
+# Configura uma curva usando o eixo correspondente ao sentido informado.
 func _configurar_curva(pos: Vector3i, sentido: Direcao.Sentido) -> void:
 	var eixo: Direcao.Eixo = Trilhos.eixo_da_peca(Trilhos.TipoTrilho.CURVA, sentido)
 	trilhos.configurar_trilho(pos, eixo, Trilhos.TipoTrilho.CURVA, sentido)
 
+# Retorna o sentido pelo qual o trem entra na célula vizinha.
 func _sentido_de_entrada(ladoVizinho: Direcao.Sentido) -> Direcao.Sentido:
 	return Direcao.sentido_oposto(ladoVizinho)
 
+# Calcula a posição da célula vizinha no sentido indicado.
 func _posicao_vizinha(pos: Vector3i, sentido: Direcao.Sentido) -> Vector3i:
 	return pos + Direcao.deslocamento(sentido)

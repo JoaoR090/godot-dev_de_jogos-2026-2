@@ -33,16 +33,16 @@ func tem_trilho(posicao: Vector3i) -> bool:
 	return item == ID_RETO or item == ID_CURVO
 
 # Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
-func configurar_trilho(posicao: Vector3i, eixoTrilho: Direcao.Eixo, tipoTrilho: Trilhos.TipoTrilho, sentido: Direcao.Sentido) -> void:
+func configurar_trilho(posicao: Vector3i, eixoTrilho: Direcao.Eixo, tipoTrilho: TipoTrilho, sentido: Direcao.Sentido) -> void:
 	match tipoTrilho:
-		Trilhos.TipoTrilho.RETO:
+		TipoTrilho.RETO:
 			var rotacao: float = Direcao.angulo_do_eixo(eixoTrilho)
 			if rotacao < 0.0:
 				print("Eixo inválido.")
 				return
 			_colocar_peca(posicao, ID_RETO, rotacao)
 
-		Trilhos.TipoTrilho.CURVA:
+		TipoTrilho.CURVA:
 			if eixoTrilho != Trilhos.eixo_da_peca(tipoTrilho, sentido):
 				print("Combinação de eixo e sentido inválida.")
 				return
@@ -95,7 +95,7 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 	var ehConectavel: bool = false
 
 	if itemVizinho == ID_RETO:
-		var eixoVizinho: Direcao.Eixo = Trilhos.eixo_da_peca(Trilhos.TipoTrilho.RETO, sentidoVizinho)
+		var eixoVizinho: Direcao.Eixo = Trilhos.eixo_da_peca(TipoTrilho.RETO, sentidoVizinho)
 		if ((sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoVizinho == Direcao.Eixo.Z):
 			ehConectavel = true
 		elif ((sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoVizinho == Direcao.Eixo.X):
