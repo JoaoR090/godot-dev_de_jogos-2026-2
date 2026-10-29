@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://ce0gs8vq2o6w4"]
+
+[ext_resource type="PackedScene" uid="uid://cec52okbje21n" path="res://assets/3d models/arvore.glb" id="1_1px7c"]
+[ext_resource type="PackedScene" uid="uid://bvua1eqvrrct4" path="res://assets/3d models/Terra.glb" id="2_xrd0t"]
+[ext_resource type="PackedScene" uid="uid://cfolhppjdqaoc" path="res://assets/3d models/Trilho.glb" id="4_3caph"]
+[ext_resource type="PackedScene" uid="uid://drb0kp82m3vkf" path="res://assets/3d models/Trilho_curvo.glb" id="5_n3j6n"]
+
+[node name="Meshlibrary" type="Node3D" unique_id=695333963]
+
+[node name="Trilho" parent="." unique_id=1553221531 instance=ExtResource("4_3caph")]
+
+[node name="Trilho_curvo" parent="." unique_id=282278262 instance=ExtResource("5_n3j6n")]
+
+[node name="arvore" parent="." unique_id=1903806688 instance=ExtResource("1_1px7c")]
+
+[node name="Terra" parent="." unique_id=488941920 instance=ExtResource("2_xrd0t")]
