@@ -16,6 +16,7 @@ func _ready() -> void:
 
 	posicao_trem = trilhos.local_to_map(trilhos.to_local(global_position))
 	direcao_trem = direcao_inicial
+	rotation.y = deg_to_rad(Direcao.angulo_do_sentido(direcao_trem))
 
 	global_position = trilhos.to_global(trilhos.map_to_local(posicao_trem))
 
@@ -32,6 +33,10 @@ func movimento(sentido: Direcao.Sentido) -> void:
 	var angulo_anterior: float = Direcao.angulo_do_sentido(direcao_trem)
 
 	if angulo_posterior < 0.0 or angulo_anterior < 0.0:
+		return
+
+	var esta_em_curva: bool = trilhos.get_cell_item(posicao_trem) == trilhos.ID_CURVO
+	if sentido != direcao_trem and not esta_em_curva:
 		return
 
 	var proxima_posicao: Vector3i = posicao_trem + Direcao.deslocamento(sentido)
@@ -59,7 +64,7 @@ func movimento(sentido: Direcao.Sentido) -> void:
 	var tween: Tween = create_tween()
 	tween.set_parallel()
 	tween.tween_property(self, "global_position", destino, duracao)
-	tween.tween_property(self, "rotation:y",rotation.y + diferenca_angular, duracao)
+	tween.tween_property(self, "rotation:y", rotation.y + diferenca_angular, duracao)
 
 	_movendo = true
 	posicao_trem = proxima_posicao

@@ -12,6 +12,8 @@ enum Estado {
 @export var trem: Trem
 # Espera antes do início automático, em segundos.
 @export var tempo_inicial: float = 10.0
+# Cria um circuito temporário para demonstrar o movimento do trem.
+@export var criar_circuito_demo: bool = false
 
 var estado: Estado = Estado.AGUARDANDO
 
@@ -24,6 +26,9 @@ func _ready() -> void:
 
 	if tempo_inicial > 0.0:
 		await get_tree().create_timer(tempo_inicial).timeout
+
+	if criar_circuito_demo:
+		Circuito.criar(trem.trilhos, trem.posicao_trem, trem.direcao_inicial)
 
 	iniciar_jogo()
 
@@ -62,17 +67,19 @@ func _proximo_trilho(
 	posicao: Vector3i,
 	sentido_desejado: Direcao.Sentido
 ) -> Direcao.Sentido:
-	var sentido: Direcao.Sentido = Direcao.avancar_sentido(sentido_desejado, 3)
+	var sentidos_prioritarios: Array[Direcao.Sentido] = [
+		sentido_desejado,
+		Direcao.proximo_sentido(sentido_desejado),
+		Direcao.avancar_sentido(sentido_desejado, 3)
+	]
 	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(sentido_desejado)
 
-	for i in range(4):
+	for sentido in sentidos_prioritarios:
 		if (
 			_tem_trilho(sentido, posicao)
 			and trem.trilhos.tem_conexao(posicao, sentido)
-			and sentido != sentido_retorno
 		):
 			return sentido
-		sentido = Direcao.proximo_sentido(sentido)
 
 	return sentido_retorno
 

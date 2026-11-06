@@ -17,13 +17,13 @@ enum Sentido {
 static func deslocamento(sentido: Sentido) -> Vector3i:
 	match sentido:
 		Sentido.CIMA:
-			return Vector3i(0, 0, -1)
-		Sentido.DIREITA:
-			return Vector3i(1, 0, 0)
-		Sentido.BAIXO:
 			return Vector3i(0, 0, 1)
-		Sentido.ESQUERDA:
+		Sentido.DIREITA:
 			return Vector3i(-1, 0, 0)
+		Sentido.BAIXO:
+			return Vector3i(0, 0, -1)
+		Sentido.ESQUERDA:
+			return Vector3i(1, 0, 0)
 	return Vector3i.ZERO
 
 # Avança um sentido na ordem circular: cima, direita, baixo e esquerda.
@@ -58,16 +58,16 @@ static func angulo_do_eixo(eixo: Eixo) -> float:
 			return 90.0
 	return -1.0
 
-# Converte um sentido em seu ângulo de rotação no eixo Y.
+# Converte um sentido em seu ângulo de rotação positiva no eixo Y.
 static func angulo_do_sentido(sentido: Sentido) -> float:
 	match sentido:
 		Sentido.CIMA:
 			return 0.0
-		Sentido.DIREITA:
+		Sentido.ESQUERDA:
 			return 90.0
 		Sentido.BAIXO:
 			return 180.0
-		Sentido.ESQUERDA:
+		Sentido.DIREITA:
 			return 270.0
 	return -1.0
 
@@ -85,11 +85,11 @@ static func sentido_do_angulo(angulo: float) -> Sentido:
 		0:
 			return Sentido.CIMA
 		90:
-			return Sentido.DIREITA
+			return Sentido.ESQUERDA
 		180:
 			return Sentido.BAIXO
 		270:
-			return Sentido.ESQUERDA
+			return Sentido.DIREITA
 	return -1
 
 # Converte um sentido na orientação ortogonal correspondente do GridMap.

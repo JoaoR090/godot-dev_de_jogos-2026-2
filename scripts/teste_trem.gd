@@ -47,10 +47,63 @@ func _ready() -> void:
 	assert(trem.posicao_trem == posicao_seguinte)
 	assert(trem.direcao_trem == Direcao.Sentido.DIREITA)
 	assert(
+		(trem.global_basis * Vector3.FORWARD).normalized().is_equal_approx(
+			Vector3.RIGHT
+		),
+		"O trem nao terminou orientado para o sentido do movimento."
+	)
+	assert(
 		trem.global_position.is_equal_approx(
 			trilhos.to_global(trilhos.map_to_local(posicao_seguinte))
 		),
 		"O trem não terminou alinhado com a célula de destino."
+	)
+
+	trilhos.configurar_trilho(
+		posicao_seguinte,
+		Direcao.Eixo.X,
+		Trilhos.TipoTrilho.CURVA,
+		Direcao.Sentido.CIMA
+	)
+	var posicao_saida_curva: Vector3i = posicao_seguinte + Direcao.deslocamento(
+		Direcao.Sentido.CIMA
+	)
+	trilhos.configurar_trilho(
+		posicao_saida_curva,
+		Direcao.Eixo.Z,
+		Trilhos.TipoTrilho.RETO,
+		Direcao.Sentido.CIMA
+	)
+	await trem.movimento(Direcao.Sentido.CIMA)
+
+	assert(trem.posicao_trem == posicao_saida_curva)
+	assert(trem.direcao_trem == Direcao.Sentido.CIMA)
+	assert(
+		(trem.global_basis * Vector3.FORWARD).normalized().is_equal_approx(
+			Vector3.FORWARD
+		),
+		"O trem nao virou para cima ao sair da curva CIMA."
+	)
+
+	var posicao_bifurcacao: Vector3i = posicao_saida_curva + Vector3i(10, 0, 0)
+	trilhos.configurar_trilho(
+		posicao_bifurcacao + Direcao.deslocamento(Direcao.Sentido.DIREITA),
+		Direcao.Eixo.X,
+		Trilhos.TipoTrilho.RETO,
+		Direcao.Sentido.DIREITA
+	)
+	trilhos.configurar_trilho(
+		posicao_bifurcacao + Direcao.deslocamento(Direcao.Sentido.CIMA),
+		Direcao.Eixo.Z,
+		Trilhos.TipoTrilho.RETO,
+		Direcao.Sentido.CIMA
+	)
+	assert(
+		controlador._proximo_trilho(
+			posicao_bifurcacao,
+			Direcao.Sentido.DIREITA
+		) == Direcao.Sentido.DIREITA,
+		"O trem deveria preferir continuar em frente quando ha trilho conectado."
 	)
 
 	print("Testes de trem passaram.")
