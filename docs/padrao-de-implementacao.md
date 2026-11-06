@@ -66,6 +66,18 @@ func _colocar_peca(posicao: Vector3i, idPeca: int, rotacaoY: float) -> void:
 O trecho é apenas um modelo de organização. Remova o `pass` e o comentário de
 orientação antes de usar a função em código real.
 
+## Responsabilidades dos scripts de jogo
+
+- `scripts/trem.gd` mantém a posição e a direção do trem e anima seu movimento
+  entre células conectadas.
+- `scripts/controlador_de_jogo.gd` controla os estados do jogo e coordena o
+  avanço automático do trem.
+- `scripts/direcao.gd` centraliza conversões e operações compartilhadas de
+  direção.
+
+Mantenha regras de movimento e animação no trem; decisões sobre início, pausa,
+encerramento e escolha do próximo movimento pertencem ao controlador.
+
 ## Nomes e idioma
 
 - Use `PascalCase` para classes e tipos: `Trilhos`, `Vector3i`.
@@ -129,8 +141,10 @@ orientação antes de usar a função em código real.
 
 ## Testes
 
-- Coloque testes temporários ou de desenvolvimento numa cena de teste separada,
-  como `scenes/teste.tscn`, sem depender da cena principal.
+- Separe testes por responsabilidade, usando uma cena dedicada para cada tema:
+  `scenes/teste_direcao.tscn`, `scenes/teste.tscn` (trilhos) e
+  `scenes/teste_trem.tscn`.
+- Execute as cenas de teste sem depender da cena principal.
 - Teste resultados observáveis: item colocado, orientação, retorno de conexão e
   estado após uma entrada inválida.
 - Inclua casos válidos, inválidos e de limite. Para conexões de trilho, teste

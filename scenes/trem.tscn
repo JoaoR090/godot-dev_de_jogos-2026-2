@@ -127,8 +127,7 @@ shadow_mesh = SubResource("ArrayMesh_aar7k")
 
 [node name="Trem" type="Node3D" unique_id=1225138994]
 script = ExtResource("1_5q52m")
-direcao_inicial = null
-intial_timeout = null
+direcao_inicial = 0
 
 [node name="Trem" type="MeshInstance3D" parent="." unique_id=890409295]
 transform = Transform3D(0.35408902, 0, 0, 0, 0, -0.35408902, 0, 0.5276376, 0, 0, 0, 0)

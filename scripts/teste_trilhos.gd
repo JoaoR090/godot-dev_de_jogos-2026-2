@@ -6,8 +6,6 @@ extends Node3D
 func _ready() -> void:
 	var pos := Vector3i.ZERO
 
-	_testar_direcoes()
-
 	# Confere a colocacao e a remocao de um trilho reto.
 	trilhos.remover_trilho(pos)
 	trilhos.configurar_trilho(
@@ -26,30 +24,35 @@ func _ready() -> void:
 	_testar_conexoes_curvas(pos)
 	_testar_atualizar_orientacao_curva(pos)
 
-	print("Todos os testes passaram.")
+	print("Testes de trilhos passaram.")
 
-# Confere os deslocamentos, a ordem dos sentidos, o oposto e o eixo de uma peça.
-func _testar_direcoes() -> void:
-	assert(Direcao.deslocamento(Direcao.Sentido.CIMA) == Vector3i(0, 0, -1))
-	assert(Direcao.deslocamento(Direcao.Sentido.DIREITA) == Vector3i(1, 0, 0))
-	assert(Direcao.deslocamento(Direcao.Sentido.BAIXO) == Vector3i(0, 0, 1))
-	assert(Direcao.deslocamento(Direcao.Sentido.ESQUERDA) == Vector3i(-1, 0, 0))
-	assert(
-		Direcao.proximo_sentido(Direcao.Sentido.CIMA) == Direcao.Sentido.DIREITA
-	)
-	assert(
-		Direcao.sentido_oposto(Direcao.Sentido.CIMA) == Direcao.Sentido.BAIXO
-	)
+# Executa casos de configuração de trilhos retos e curvas.
+func _testar_configuracao(pos: Vector3i) -> void:
+	print("Testando configuracao de trilhos...")
 	assert(
 		Trilhos.eixo_da_peca(
 			Trilhos.TipoTrilho.RETO,
 			Direcao.Sentido.CIMA
 		) == Direcao.Eixo.Z
 	)
-
-# Executa casos de configuração de trilhos retos e curvas.
-func _testar_configuracao(pos: Vector3i) -> void:
-	print("Testando configuracao de trilhos...")
+	assert(
+		Trilhos.eixo_da_peca(
+			Trilhos.TipoTrilho.RETO,
+			Direcao.Sentido.DIREITA
+		) == Direcao.Eixo.X
+	)
+	assert(
+		Trilhos.eixo_da_peca(
+			Trilhos.TipoTrilho.CURVA,
+			Direcao.Sentido.CIMA
+		) == Direcao.Eixo.X
+	)
+	assert(
+		Trilhos.eixo_da_peca(
+			Trilhos.TipoTrilho.CURVA,
+			Direcao.Sentido.DIREITA
+		) == Direcao.Eixo.Z
+	)
 
 	_testar_configuracao_reta(pos, Direcao.Eixo.Z, Direcao.Sentido.CIMA)
 	_testar_configuracao_reta(pos, Direcao.Eixo.X, Direcao.Sentido.DIREITA)

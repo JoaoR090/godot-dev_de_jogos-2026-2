@@ -5,10 +5,12 @@
 [ext_resource type="PackedScene" uid="uid://c1i8224206cbq" path="res://scenes/estacao.tscn" id="3_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://c4cvju0a3ykmm" path="res://scenes/player.tscn" id="4_tipki"]
 [ext_resource type="PackedScene" uid="uid://c44cj7nu3yej3" path="res://scenes/trilho.tscn" id="5_85g3d"]
+[ext_resource type="Script" uid="uid://dh1h8lgcd7dwn" path="res://scripts/controlador_de_jogo.gd" id="6_ctrl"]
 
 [node name="Main" type="Node3D" unique_id=1502751328]
 
-[node name="Trem" parent="." unique_id=250326021 instance=ExtResource("1_tbgi4")]
+[node name="Trem" parent="." unique_id=250326021 node_paths=PackedStringArray("trilhos") instance=ExtResource("1_tbgi4")]
+trilhos = NodePath("../Trilhos")
 
 [node name="Chao" parent="." unique_id=787760350 instance=ExtResource("2_tefeu")]
 
@@ -17,3 +19,13 @@
 [node name="Player" parent="." unique_id=1211023565 instance=ExtResource("4_tipki")]
 
 [node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]
+
+[node name="ControladorDeJogo" type="Node" parent="." unique_id=1941115670 node_paths=PackedStringArray("trem")]
+script = ExtResource("6_ctrl")
+trem = NodePath("../Trem")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=672687609]
+transform = Transform3D(1, 0, 0, 0, 1.3113416e-07, 1, 0, -1, 1.3113416e-07, 0, 10, 0)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1630397822]
+transform = Transform3D(1, 0, 0, 0, 8.940697e-08, 1, 0, -1, 8.940697e-08, 0, 20, 0)
