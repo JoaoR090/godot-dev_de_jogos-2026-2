@@ -52,10 +52,7 @@ func _process(_delta: float) -> void:
 		return
 
 	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(trem.direcao_trem)
-	var proximo_sentido: Direcao.Sentido = _proximo_trilho(
-		trem.posicao_trem,
-		trem.direcao_trem
-	)
+	var proximo_sentido: Direcao.Sentido = _proximo_trilho(trem.posicao_trem, trem.direcao_trem)
 
 	if proximo_sentido == sentido_retorno:
 		return
@@ -63,22 +60,12 @@ func _process(_delta: float) -> void:
 	trem.movimento(proximo_sentido)
 
 # Retorna uma saída conectada, priorizando a continuidade do movimento atual.
-func _proximo_trilho(
-	posicao: Vector3i,
-	sentido_desejado: Direcao.Sentido
-) -> Direcao.Sentido:
-	var sentidos_prioritarios: Array[Direcao.Sentido] = [
-		sentido_desejado,
-		Direcao.proximo_sentido(sentido_desejado),
-		Direcao.avancar_sentido(sentido_desejado, 3)
-	]
+func _proximo_trilho(posicao: Vector3i, sentido_desejado: Direcao.Sentido) -> Direcao.Sentido:
+	var sentidos_prioritarios: Array[Direcao.Sentido] = [sentido_desejado, Direcao.proximo_sentido(sentido_desejado), Direcao.avancar_sentido(sentido_desejado, 3)]
 	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(sentido_desejado)
 
 	for sentido in sentidos_prioritarios:
-		if (
-			_tem_trilho(sentido, posicao)
-			and trem.trilhos.tem_conexao(posicao, sentido)
-		):
+		if (_tem_trilho(sentido, posicao) and trem.trilhos.tem_conexao(posicao, sentido)):
 			return sentido
 
 	return sentido_retorno

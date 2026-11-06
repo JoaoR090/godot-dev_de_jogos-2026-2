@@ -28,7 +28,7 @@ tempo_inicial = 0.0
 criar_circuito_demo = true
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=672687609]
-transform = Transform3D(1, 0, 0, 0, 1.3113416e-07, 1, 0, -1, 1.3113416e-07, 0, 20, 0)
+transform = Transform3D(1, 0, 0, 0, 1.3113416e-07, 1, 0, -1, 1.3113416e-07, 0, 15, 0)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1630397822]
 transform = Transform3D(1, 0, 0, 0, 8.940697e-08, 1, 0, -1, 8.940697e-08, 0, 20, 0)
