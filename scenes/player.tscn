@@ -1,7 +1,15 @@
 [gd_scene format=3 uid="uid://c4cvju0a3ykmm"]
 
+[ext_resource type="PackedScene" uid="uid://cec52okbje21n" path="res://assets/3d models/arvore.glb" id="1_3vyb7"]
+[ext_resource type="Script" uid="uid://cclvatm0tx7ja" path="res://scripts/player.gd" id="1_g2els"]
+
 [node name="Player" type="Node3D" unique_id=1211023565]
+script = ExtResource("1_g2els")
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=1690538927]
 
+[node name="arvore" parent="Sprite3D" unique_id=824730303 instance=ExtResource("1_3vyb7")]
+
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1756516102]
+transform = Transform3D(1, 0, 0, 0, 0.49999994, 0.8660254, 0, -0.8660254, 0.49999994, 0, 7, 4)
+fov = 67.06188
