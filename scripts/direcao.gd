@@ -39,6 +39,14 @@ static func proximo_sentido(sentido: Sentido) -> Sentido:
 			return Sentido.CIMA
 	return sentido
 
+static func proximo_eixo(eixo: Eixo) -> Eixo:
+	match eixo:
+		Eixo.Z:
+			return Eixo.X
+		Eixo.X:
+			return Eixo.Z
+	return eixo
+
 # Avança vários passos na sequência circular de sentidos.
 static func avancar_sentido(sentido: Sentido, passos: int) -> Sentido:
 	for _i in range(posmod(passos, 4)):
