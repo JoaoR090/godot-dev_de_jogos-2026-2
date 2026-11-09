@@ -3,3 +3,5 @@
 [node name="Player" type="Node3D" unique_id=1211023565]
 
 [node name="Sprite3D" type="Sprite3D" parent="." unique_id=1690538927]
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1756516102]
