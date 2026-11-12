@@ -21,7 +21,8 @@ data = {
 
 [node name="Estacao" parent="." unique_id=1099004966 instance=ExtResource("3_o6xl0")]
 
-[node name="Player" parent="." unique_id=1211023565 instance=ExtResource("4_tipki")]
+[node name="Player" parent="." unique_id=1211023565 node_paths=PackedStringArray("grid_trilhos") instance=ExtResource("4_tipki")]
+grid_trilhos = NodePath("../Trilhos")
 
 [node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)

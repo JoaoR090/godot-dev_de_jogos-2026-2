@@ -90,28 +90,65 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 		return false
 
 	var ehConectavel: bool = false
+	var sentidoAtual: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
+	var itemAtual = get_cell_item(posicao)
 
 	if itemVizinho == ID_RETO:
 		var eixoVizinho: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoVizinho)
-		if (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoVizinho == Direcao.Eixo.Z:
-			ehConectavel = true
-		elif (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoVizinho == Direcao.Eixo.X:
-			ehConectavel = true
+		if itemAtual == ID_RETO:
+			var eixoAtual: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoAtual)
+			if (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoAtual == Direcao.Eixo.Z and eixoVizinho == Direcao.Eixo.Z:
+				ehConectavel = true
+			elif (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoAtual == Direcao.Eixo.X and eixoVizinho == Direcao.Eixo.X:
+				ehConectavel = true
+		elif itemAtual == ID_CURVO:
+			if sentido == Direcao.Sentido.CIMA and sentidoAtual == Direcao.Sentido.CIMA and eixoVizinho == Direcao.Eixo.Z:
+				ehConectavel = true
+			elif sentido == Direcao.Sentido.BAIXO and sentidoAtual == Direcao.Sentido.BAIXO and eixoVizinho == Direcao.Eixo.Z:
+				ehConectavel = true
+			elif sentido == Direcao.Sentido.DIREITA and sentidoAtual == Direcao.Sentido.DIREITA and eixoVizinho == Direcao.Eixo.X:
+				ehConectavel = true
+			elif sentido == Direcao.Sentido.ESQUERDA and sentidoAtual == Direcao.Sentido.ESQUERDA and eixoVizinho == Direcao.Eixo.X:
+				ehConectavel = true
+			if not ehConectavel:
+				sentidoAtual = Direcao.avancar_sentido(sentidoAtual, 3)
+				if sentido == Direcao.Sentido.CIMA and sentidoAtual == Direcao.Sentido.CIMA and eixoVizinho == Direcao.Eixo.Z:
+					ehConectavel = true
+				elif sentido == Direcao.Sentido.BAIXO and sentidoAtual == Direcao.Sentido.BAIXO and eixoVizinho == Direcao.Eixo.Z:
+					ehConectavel = true
+				elif sentido == Direcao.Sentido.DIREITA and sentidoAtual == Direcao.Sentido.DIREITA and eixoVizinho == Direcao.Eixo.X:
+					ehConectavel = true
+				elif sentido == Direcao.Sentido.ESQUERDA and sentidoAtual == Direcao.Sentido.ESQUERDA and eixoVizinho == Direcao.Eixo.X:
+					ehConectavel = true
 
 	elif itemVizinho == ID_CURVO:
-		match sentido:
-			Direcao.Sentido.CIMA:
-				if sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA:
-					ehConectavel = true
-			Direcao.Sentido.DIREITA:
-				if sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA:
-					ehConectavel = true
-			Direcao.Sentido.BAIXO:
-				if sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA:
-					ehConectavel = true
-			Direcao.Sentido.ESQUERDA:
-				if sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO:
-					ehConectavel = true
+		if itemAtual == ID_RETO:
+			var eixoAtual: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoAtual)
+			match eixoAtual:
+				Direcao.Eixo.Z:
+					if sentido == Direcao.Sentido.BAIXO and (sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA):
+						ehConectavel = true
+					if sentido == Direcao.Sentido.CIMA and (sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA):
+						ehConectavel = true
+				Direcao.Eixo.X:
+					if sentido == Direcao.Sentido.ESQUERDA and (sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO):
+						ehConectavel = true
+					if sentido == Direcao.Sentido.DIREITA and (sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA):
+						ehConectavel = true
+		elif itemAtual == ID_CURVO:
+			match sentido:
+				Direcao.Sentido.CIMA:
+					if (sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA) and (sentidoAtual == Direcao.Sentido.CIMA or sentidoAtual == Direcao.Sentido.DIREITA):
+						ehConectavel = true
+				Direcao.Sentido.DIREITA:
+					if (sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA) and (sentidoAtual == Direcao.Sentido.DIREITA or sentidoAtual == Direcao.Sentido.BAIXO):
+						ehConectavel = true
+				Direcao.Sentido.BAIXO:
+					if (sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA) and (sentidoAtual == Direcao.Sentido.BAIXO or sentidoAtual == Direcao.Sentido.ESQUERDA):
+						ehConectavel = true
+				Direcao.Sentido.ESQUERDA:
+					if (sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO) and (sentidoAtual == Direcao.Sentido.ESQUERDA or sentidoAtual == Direcao.Sentido.CIMA):
+						ehConectavel = true
 
 	return ehConectavel
 

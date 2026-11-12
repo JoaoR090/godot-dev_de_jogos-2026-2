@@ -5,8 +5,8 @@ static func criar(trilhos: Trilhos, posicao: Vector3i, sentido: Direcao.Sentido)
 	var posicao_trilho: Vector3i = posicao
 	var proximo_sentido: Direcao.Sentido = sentido
 
-	for _lado in range(4):
-		for _passo in range(4):
+	for lado in range(4):
+		for passo in range(4):
 			posicao_trilho += Direcao.deslocamento(proximo_sentido)
 			if (proximo_sentido == Direcao.Sentido.ESQUERDA or proximo_sentido == Direcao.Sentido.DIREITA):
 				_trilho_reto_eixo_x(trilhos, posicao_trilho)

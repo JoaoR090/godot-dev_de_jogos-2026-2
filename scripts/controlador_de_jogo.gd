@@ -52,23 +52,44 @@ func _process(_delta: float) -> void:
 		return
 
 	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(trem.direcao_trem)
-	var proximo_sentido: Direcao.Sentido = _proximo_trilho(trem.posicao_trem, trem.direcao_trem)
+	var proximos_sentidos: Array[Direcao.Sentido] = _proximo_trilho(trem.posicao_trem, trem.direcao_trem)
 
-	if proximo_sentido == sentido_retorno:
+	if proximos_sentidos.size() <= 1:
+		print("Game Over")
 		return
+	for sentido in proximos_sentidos:
+		print(print_sentido(sentido))
+	print(" ")
+	
+	if proximos_sentidos[0] == sentido_retorno:
+		trem.movimento(proximos_sentidos[1])
+	else:
+		trem.movimento(proximos_sentidos[0])
 
-	trem.movimento(proximo_sentido)
+func print_sentido(sentido: Direcao.Sentido)-> String:
+	match sentido:
+		Direcao.Sentido.CIMA:
+			return "cima"
+		Direcao.Sentido.DIREITA:
+			return "direita"
+		Direcao.Sentido.BAIXO:
+			return "baixo"
+		Direcao.Sentido.ESQUERDA:
+			return "esquerda"
+	return "erro"
+
 
 # Retorna uma saída conectada, priorizando a continuidade do movimento atual.
-func _proximo_trilho(posicao: Vector3i, sentido_desejado: Direcao.Sentido) -> Direcao.Sentido:
-	var sentidos_prioritarios: Array[Direcao.Sentido] = [sentido_desejado, Direcao.proximo_sentido(sentido_desejado), Direcao.avancar_sentido(sentido_desejado, 3)]
-	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(sentido_desejado)
+func _proximo_trilho(posicao: Vector3i, sentido_desejado: Direcao.Sentido) -> Array[Direcao.Sentido]:
+	var sentidos: Array[Direcao.Sentido] = []
+	var sentido: Direcao.Sentido = sentido_desejado
 
-	for sentido in sentidos_prioritarios:
+	for _i in range(4):
 		if (_tem_trilho(sentido, posicao) and trem.trilhos.tem_conexao(posicao, sentido)):
-			return sentido
+			sentidos.append(sentido)
+		sentido = Direcao.proximo_sentido(sentido)
 
-	return sentido_retorno
+	return sentidos
 
 # Verifica se há um trilho vizinho na direção informada.
 func _tem_trilho(sentido: Direcao.Sentido, posicao: Vector3i) -> bool:
