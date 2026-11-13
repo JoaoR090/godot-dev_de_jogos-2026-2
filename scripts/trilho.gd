@@ -56,19 +56,19 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 
 # Gira a curva no sentido horário na primeira posição válida
 func girar_curva_horario(posicao: Vector3i, pontas_minimas: int = 2) -> bool:
-    if get_cell_item(posicao) != ID_CURVO:
-        return false
+	if get_cell_item(posicao) != ID_CURVO:
+		return false
 
-    var sentido_atual = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
-    if sentido_atual == Direcao.Sentido.INVALIDO:
-        return false
+	var sentido_atual = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
+	if sentido_atual == Direcao.Sentido.INVALIDO:
+		return false
 
-    for passo in range(1, 4):
-        var candidato = Direcao.avancar_sentido(sentido_atual, passo)
-        if _pontas_encaixadas(posicao, candidato) >= pontas_minimas:
-            colocar_curva(posicao, candidato)
-            return true
-    return false
+	for passo in range(1, 4):
+		var candidato = Direcao.avancar_sentido(sentido_atual, passo)
+		if _pontas_encaixadas(posicao, candidato) >= pontas_minimas:
+			colocar_curva(posicao, candidato)
+			return true
+	return false
 
 # Lados abertos da peça que está na célula (lista vazia se não houver trilho).
 func _lados_abertos_da_celula(posicao: Vector3i) -> Array[Direcao.Sentido]:
