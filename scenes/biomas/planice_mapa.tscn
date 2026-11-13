@@ -3,9 +3,7 @@
 [ext_resource type="MeshLibrary" uid="uid://ifee5afklfbq" path="res://assets/library/library.tres" id="1_stm7c"]
 [ext_resource type="Script" uid="uid://crnvnttiy4mj3" path="res://scenes/biomas/grid_map.gd" id="2_swbjx"]
 
-[node name="planice_mapa" type="Node3D" unique_id=1369888334]
-
-[node name="GridMap" type="GridMap" parent="." unique_id=1245955506]
+[node name="planice_mapa" type="GridMap" unique_id=1245955506]
 mesh_library = ExtResource("1_stm7c")
 cell_size = Vector3(1, 1, 1)
 cell_center_y = false
