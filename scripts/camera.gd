@@ -11,6 +11,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if clique == null or not clique.pressed or clique.button_index != MOUSE_BUTTON_LEFT:
 		return
 
+	# Evita que cliques no HUD também disparem a seleção 3D.
+	if get_viewport().gui_get_hovered_control() != null:
+		return
+
 	# Raio da câmera até o ponto clicado (usa a posição do próprio evento).
 	var origem: Vector3 = project_ray_origin(clique.position)
 	var fim: Vector3 = origem + project_ray_normal(clique.position) * RAY_LENGTH
