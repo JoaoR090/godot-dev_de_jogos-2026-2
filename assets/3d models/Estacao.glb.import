@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bq46y6gqoyrlw"
-path="res://.godot/imported/pedra.glb-2948a06e19230398aed7e6a8d8138909.scn"
+uid="uid://csr1ttuw7o75s"
+path="res://.godot/imported/Estacao.glb-3015ba131d44f1c3d50b1af98e1355a0.scn"
 
 [deps]
 
-source_file="res://assets/3d models/pedra.glb"
-dest_files=["res://.godot/imported/pedra.glb-2948a06e19230398aed7e6a8d8138909.scn"]
+source_file="res://assets/3d models/Estacao.glb"
+dest_files=["res://.godot/imported/Estacao.glb-3015ba131d44f1c3d50b1af98e1355a0.scn"]
 
 [params]
 

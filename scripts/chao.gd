@@ -1,13 +1,13 @@
 extends GridMap
-var ID_TERRA: int = 3
+
+const ID_TERRA: int = 3
+
 func _ready() -> void:
 	criar_terreno_quadrado(100)
 
-
-func criar_terreno_quadrado(espaco: int)-> void:
-	var posicao: Vector3i = Vector3i.ZERO
-	for i in range(espaco):
-		posicao.z = i - espaco/2
-		for j in range(100):
-			posicao.x = j - espaco/2
-			set_cell_item(posicao, ID_TERRA)
+# Preenche um quadrado `lado` x `lado` de terra, centrado na origem.
+func criar_terreno_quadrado(lado: int) -> void:
+	var metade: int = lado / 2
+	for z in range(-metade, lado - metade):
+		for x in range(-metade, lado - metade):
+			set_cell_item(Vector3i(x, 0, z), ID_TERRA)

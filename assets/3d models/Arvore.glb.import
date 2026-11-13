@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cgb5upbprx7x2"
-path="res://.godot/imported/agua.glb-e2e045536fb470e89bbaf1210b801bf4.scn"
+uid="uid://b16e4nn67o0je"
+path="res://.godot/imported/Arvore.glb-b091aceccf94247a649eb115fbf45987.scn"
 
 [deps]
 
-source_file="res://assets/3d models/agua.glb"
-dest_files=["res://.godot/imported/agua.glb-e2e045536fb470e89bbaf1210b801bf4.scn"]
+source_file="res://assets/3d models/Arvore.glb"
+dest_files=["res://.godot/imported/Arvore.glb-b091aceccf94247a649eb115fbf45987.scn"]
 
 [params]
 

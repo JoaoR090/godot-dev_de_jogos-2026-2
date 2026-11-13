@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://cec52okbje21n"
-path="res://.godot/imported/arvore.glb-a0fb4542cd21907a022f4b88e495efb2.scn"
+uid="uid://dpski6xeujhud"
+path="res://.godot/imported/Pedra.glb-e59b9aea308eba44d8f5ad5d22e9cf90.scn"
 
 [deps]
 
-source_file="res://assets/3d models/arvore.glb"
-dest_files=["res://.godot/imported/arvore.glb-a0fb4542cd21907a022f4b88e495efb2.scn"]
+source_file="res://assets/3d models/Pedra.glb"
+dest_files=["res://.godot/imported/Pedra.glb-e59b9aea308eba44d8f5ad5d22e9cf90.scn"]
 
 [params]
 

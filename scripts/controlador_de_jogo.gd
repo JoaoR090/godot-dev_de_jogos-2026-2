@@ -14,6 +14,8 @@ enum Estado {
 @export var tempo_inicial: float = 10.0
 # Cria um circuito temporário para demonstrar o movimento do trem.
 @export var criar_circuito_demo: bool = false
+# Imprime no console as saídas escolhidas a cada passo.
+@export var depurar: bool = false
 
 var estado: Estado = Estado.AGUARDANDO
 
@@ -26,6 +28,10 @@ func _ready() -> void:
 
 	if tempo_inicial > 0.0:
 		await get_tree().create_timer(tempo_inicial).timeout
+
+	# Durante a espera o jogo pode ter sido encerrado ou o trem removido.
+	if estado == Estado.ENCERRADO or not is_instance_valid(trem):
+		return
 
 	if criar_circuito_demo:
 		Circuito.criar(trem.trilhos, trem.posicao_trem, trem.direcao_inicial)
@@ -51,26 +57,25 @@ func _process(_delta: float) -> void:
 	if estado != Estado.ATIVO or not is_instance_valid(trem) or trem.esta_movendo():
 		return
 
-	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(trem.direcao_trem)
-	var proximo_sentido: Direcao.Sentido = _proximo_trilho(trem.posicao_trem, trem.direcao_trem)
+	var saidas: Array[Direcao.Sentido] = _saidas_disponiveis(trem.posicao_trem, trem.direcao_trem)
+	# O trem não dá ré: se só sobrou o caminho de volta, não há para onde ir.
+	saidas.erase(Direcao.sentido_oposto(trem.direcao_trem))
 
-	if proximo_sentido == sentido_retorno:
+	if saidas.is_empty():
+		print("Game Over")
+		encerrar_jogo()
 		return
 
-	trem.movimento(proximo_sentido)
+	if depurar:
+		print("Saída escolhida: ", Direcao.nome(saidas[0]))
+	trem.movimento(saidas[0])
 
-# Retorna uma saída conectada, priorizando a continuidade do movimento atual.
-func _proximo_trilho(posicao: Vector3i, sentido_desejado: Direcao.Sentido) -> Direcao.Sentido:
-	var sentidos_prioritarios: Array[Direcao.Sentido] = [sentido_desejado, Direcao.proximo_sentido(sentido_desejado), Direcao.avancar_sentido(sentido_desejado, 3)]
-	var sentido_retorno: Direcao.Sentido = Direcao.sentido_oposto(sentido_desejado)
-
-	for sentido in sentidos_prioritarios:
-		if (_tem_trilho(sentido, posicao) and trem.trilhos.tem_conexao(posicao, sentido)):
-			return sentido
-
-	return sentido_retorno
-
-# Verifica se há um trilho vizinho na direção informada.
-func _tem_trilho(sentido: Direcao.Sentido, posicao: Vector3i) -> bool:
-	var posicao_vizinha: Vector3i = posicao + Direcao.deslocamento(sentido)
-	return trem.trilhos.tem_trilho(posicao_vizinha)
+# Lista os sentidos conectados a partir da posição, começando pelo sentido atual
+# (assim a continuidade do movimento tem prioridade).
+func _saidas_disponiveis(posicao: Vector3i, sentido_inicial: Direcao.Sentido) -> Array[Direcao.Sentido]:
+	var saidas: Array[Direcao.Sentido] = []
+	for passo in range(4):
+		var sentido: Direcao.Sentido = Direcao.avancar_sentido(sentido_inicial, passo)
+		if trem.trilhos.tem_conexao(posicao, sentido):
+			saidas.append(sentido)
+	return saidas

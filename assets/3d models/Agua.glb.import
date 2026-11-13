@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dvchiqwy52tia"
-path="res://.godot/imported/estacao.glb-df4d25586f4ca173c3fd07963624ec38.scn"
+uid="uid://dyn7g8dbs8rqf"
+path="res://.godot/imported/Agua.glb-860cde310f4e1a0ba48ac7172b2ee32d.scn"
 
 [deps]
 
-source_file="res://assets/3d models/estacao.glb"
-dest_files=["res://.godot/imported/estacao.glb-df4d25586f4ca173c3fd07963624ec38.scn"]
+source_file="res://assets/3d models/Agua.glb"
+dest_files=["res://.godot/imported/Agua.glb-860cde310f4e1a0ba48ac7172b2ee32d.scn"]
 
 [params]
 
