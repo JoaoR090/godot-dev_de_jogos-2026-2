@@ -7,176 +7,92 @@ enum TipoTrilho {
 }
 
 # IDs dos modelos correspondentes na biblioteca do GridMap.
-var ID_RETO: int = 0
-var ID_CURVO: int = 1
+const ID_RETO: int = 0
+const ID_CURVO: int = 1
 
-static func eixo_da_peca(tipo: TipoTrilho, sentido: Direcao.Sentido) -> Direcao.Eixo:
-	var sentido_vertical: bool = (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO)
-	var sentido_horizontal: bool = (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA)
-
+# Lados abertos de uma peça, dada a sua orientação.
+#  - Reto : abre o sentido e o oposto (ex.: CIMA abre CIMA e BAIXO).
+#  - Curva: abre o sentido e o anterior na ordem circular (ex.: CIMA abre CIMA e ESQUERDA).
+static func lados_abertos(tipo: TipoTrilho, sentido: Direcao.Sentido) -> Array[Direcao.Sentido]:
 	match tipo:
 		TipoTrilho.RETO:
-			if sentido_vertical:
-				return Direcao.Eixo.Z
-			if sentido_horizontal:
-				return Direcao.Eixo.X
+			return [sentido, Direcao.sentido_oposto(sentido)]
 		TipoTrilho.CURVA:
-			if sentido_vertical:
-				return Direcao.Eixo.X
-			if sentido_horizontal:
-				return Direcao.Eixo.Z
-	return -1
-
+			return [sentido, Direcao.sentido_anterior(sentido)]
+	return []
 
 func tem_trilho(posicao: Vector3i) -> bool:
 	var item: int = get_cell_item(posicao)
 	return item == ID_RETO or item == ID_CURVO
 
-# Coloca um trilho reto pelo eixo ou orienta uma curva pelo sentido informado.
-func configurar_trilho(posicao: Vector3i, eixoTrilho: Direcao.Eixo, tipoTrilho: TipoTrilho, sentido: Direcao.Sentido) -> void:
-	match tipoTrilho:
-		TipoTrilho.RETO:
-			var rotacao: float = Direcao.angulo_do_eixo(eixoTrilho)
-			if rotacao < 0.0:
-				print("Eixo inválido.")
-				return
-			_colocar_peca(posicao, ID_RETO, rotacao)
-
-		TipoTrilho.CURVA:
-			var rotacao: float = Direcao.angulo_do_sentido(sentido)
-			if rotacao < 0.0:
-				print("Sentido inválido.")
-				return
-			_colocar_peca(posicao, ID_CURVO, rotacao)
-
-# Remove a peca da celula indicada.
-func remover_trilho(posicao: Vector3i)->void:
-	set_cell_item(posicao, -1)
-
-# Gira a curva para uma orientacao compativel com os trilhos vizinhos.
-func atualizar_orientacao_curva(posicao: Vector3i) -> void:
-	var item: int = get_cell_item(posicao)
-
-	if item != ID_CURVO:
+# Coloca um trilho reto alinhado ao eixo informado.
+func colocar_reto(posicao: Vector3i, eixo: Direcao.Eixo) -> void:
+	var rotacao: float = Direcao.angulo_do_eixo(eixo)
+	if rotacao < 0.0:
+		print("Eixo inválido ao colocar trilho reto.")
 		return
+	_colocar_peca(posicao, ID_RETO, rotacao)
 
-	var orientacao: int = get_cell_item_orientation(posicao)
-	var sentidoAtual: Direcao.Sentido = Direcao.sentido_da_orientacao(orientacao, self)
-
-	if sentidoAtual == -1:
+# Coloca uma curva orientada pelo sentido informado.
+func colocar_curva(posicao: Vector3i, sentido: Direcao.Sentido) -> void:
+	var rotacao: float = Direcao.angulo_do_sentido(sentido)
+	if rotacao < 0.0:
+		print("Sentido inválido ao colocar curva.")
 		return
+	_colocar_peca(posicao, ID_CURVO, rotacao)
 
-	var novoSentido: Direcao.Sentido = _calcular_sentido_curva(posicao, sentidoAtual)
+# Remove a peça da célula indicada.
+func remover_trilho(posicao: Vector3i) -> void:
+	set_cell_item(posicao, INVALID_CELL_ITEM)
 
-	if novoSentido == -1:
-		return
-
-	var novaOrientacao: int = Direcao.orientacao_do_sentido(novoSentido, self)
-
-	set_cell_item(posicao, item, novaOrientacao)
-
-# Verifica se a celula vizinha na direcao indicada forma uma conexao valida.
+# Duas células estão conectadas quando a primeira tem um lado aberto para
+# `sentido` e a vizinha tem o lado oposto aberto para ela.
 func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
-	var posicaoVizinha: Vector3i = posicao + Direcao.deslocamento(sentido)
+	var vizinha: Vector3i = posicao + Direcao.deslocamento(sentido)
+	return (
+		_lados_abertos_da_celula(posicao).has(sentido)
+		and _lados_abertos_da_celula(vizinha).has(Direcao.sentido_oposto(sentido))
+	)
 
-	var itemVizinho = get_cell_item(posicaoVizinha)
+# Gira a curva no sentido horário na primeira posição válida
+func girar_curva_horario(posicao: Vector3i, pontas_minimas: int = 2) -> bool:
+    if get_cell_item(posicao) != ID_CURVO:
+        return false
 
-	if itemVizinho == -1:
-		return false
+    var sentido_atual = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
+    if sentido_atual == Direcao.Sentido.INVALIDO:
+        return false
 
-	var sentidoVizinho: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicaoVizinha), self)
+    for passo in range(1, 4):
+        var candidato = Direcao.avancar_sentido(sentido_atual, passo)
+        if _pontas_encaixadas(posicao, candidato) >= pontas_minimas:
+            colocar_curva(posicao, candidato)
+            return true
+    return false
 
-	if sentidoVizinho == -1:
-		return false
+# Lados abertos da peça que está na célula (lista vazia se não houver trilho).
+func _lados_abertos_da_celula(posicao: Vector3i) -> Array[Direcao.Sentido]:
+	var item: int = get_cell_item(posicao)
+	if item == INVALID_CELL_ITEM:
+		return []
 
-	var ehConectavel: bool = false
-	var sentidoAtual: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
-	var itemAtual = get_cell_item(posicao)
+	var sentido: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
+	if sentido == Direcao.Sentido.INVALIDO:
+		return []
 
-	if itemVizinho == ID_RETO:
-		var eixoVizinho: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoVizinho)
-		if itemAtual == ID_RETO:
-			var eixoAtual: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoAtual)
-			if (sentido == Direcao.Sentido.CIMA or sentido == Direcao.Sentido.BAIXO) and eixoAtual == Direcao.Eixo.Z and eixoVizinho == Direcao.Eixo.Z:
-				ehConectavel = true
-			elif (sentido == Direcao.Sentido.DIREITA or sentido == Direcao.Sentido.ESQUERDA) and eixoAtual == Direcao.Eixo.X and eixoVizinho == Direcao.Eixo.X:
-				ehConectavel = true
-		elif itemAtual == ID_CURVO:
-			if sentido == Direcao.Sentido.CIMA and sentidoAtual == Direcao.Sentido.CIMA and eixoVizinho == Direcao.Eixo.Z:
-				ehConectavel = true
-			elif sentido == Direcao.Sentido.BAIXO and sentidoAtual == Direcao.Sentido.BAIXO and eixoVizinho == Direcao.Eixo.Z:
-				ehConectavel = true
-			elif sentido == Direcao.Sentido.DIREITA and sentidoAtual == Direcao.Sentido.DIREITA and eixoVizinho == Direcao.Eixo.X:
-				ehConectavel = true
-			elif sentido == Direcao.Sentido.ESQUERDA and sentidoAtual == Direcao.Sentido.ESQUERDA and eixoVizinho == Direcao.Eixo.X:
-				ehConectavel = true
-			if not ehConectavel:
-				sentidoAtual = Direcao.avancar_sentido(sentidoAtual, 3)
-				if sentido == Direcao.Sentido.CIMA and sentidoAtual == Direcao.Sentido.CIMA and eixoVizinho == Direcao.Eixo.Z:
-					ehConectavel = true
-				elif sentido == Direcao.Sentido.BAIXO and sentidoAtual == Direcao.Sentido.BAIXO and eixoVizinho == Direcao.Eixo.Z:
-					ehConectavel = true
-				elif sentido == Direcao.Sentido.DIREITA and sentidoAtual == Direcao.Sentido.DIREITA and eixoVizinho == Direcao.Eixo.X:
-					ehConectavel = true
-				elif sentido == Direcao.Sentido.ESQUERDA and sentidoAtual == Direcao.Sentido.ESQUERDA and eixoVizinho == Direcao.Eixo.X:
-					ehConectavel = true
+	match item:
+		ID_RETO:
+			return lados_abertos(TipoTrilho.RETO, sentido)
+		ID_CURVO:
+			return lados_abertos(TipoTrilho.CURVA, sentido)
+	return []
 
-	elif itemVizinho == ID_CURVO:
-		if itemAtual == ID_RETO:
-			var eixoAtual: Direcao.Eixo = eixo_da_peca(TipoTrilho.RETO, sentidoAtual)
-			match eixoAtual:
-				Direcao.Eixo.Z:
-					if sentido == Direcao.Sentido.BAIXO and (sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA):
-						ehConectavel = true
-					if sentido == Direcao.Sentido.CIMA and (sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA):
-						ehConectavel = true
-				Direcao.Eixo.X:
-					if sentido == Direcao.Sentido.ESQUERDA and (sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO):
-						ehConectavel = true
-					if sentido == Direcao.Sentido.DIREITA and (sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA):
-						ehConectavel = true
-		elif itemAtual == ID_CURVO:
-			match sentido:
-				Direcao.Sentido.CIMA:
-					if (sentidoVizinho == Direcao.Sentido.BAIXO or sentidoVizinho == Direcao.Sentido.ESQUERDA) and (sentidoAtual == Direcao.Sentido.CIMA or sentidoAtual == Direcao.Sentido.DIREITA):
-						ehConectavel = true
-				Direcao.Sentido.DIREITA:
-					if (sentidoVizinho == Direcao.Sentido.ESQUERDA or sentidoVizinho == Direcao.Sentido.CIMA) and (sentidoAtual == Direcao.Sentido.DIREITA or sentidoAtual == Direcao.Sentido.BAIXO):
-						ehConectavel = true
-				Direcao.Sentido.BAIXO:
-					if (sentidoVizinho == Direcao.Sentido.CIMA or sentidoVizinho == Direcao.Sentido.DIREITA) and (sentidoAtual == Direcao.Sentido.BAIXO or sentidoAtual == Direcao.Sentido.ESQUERDA):
-						ehConectavel = true
-				Direcao.Sentido.ESQUERDA:
-					if (sentidoVizinho == Direcao.Sentido.DIREITA or sentidoVizinho == Direcao.Sentido.BAIXO) and (sentidoAtual == Direcao.Sentido.ESQUERDA or sentidoAtual == Direcao.Sentido.CIMA):
-						ehConectavel = true
+# A célula vizinha em `lado` tem uma ponta aberta voltada para `posicao`?
+func _vizinho_aceita(posicao: Vector3i, lado: Direcao.Sentido) -> bool:
+	var vizinha: Vector3i = posicao + Direcao.deslocamento(lado)
+	return _lados_abertos_da_celula(vizinha).has(Direcao.sentido_oposto(lado))
 
-	return ehConectavel
-
-# Usa as conexoes vizinhas para determinar a nova orientacao da curva.
-func _calcular_sentido_curva(posicao: Vector3i, sentidoAtual: Direcao.Sentido) -> Direcao.Sentido:
-	var trilhosAdjacentes: Direcao.Sentido = -1
-	var sentido: Direcao.Sentido = sentidoAtual
-
-	for i in range(2):
-		sentido = Direcao.proximo_sentido(sentido)
-
-		if tem_conexao(posicao, sentido):
-			trilhosAdjacentes = sentido
-			break
-
-	if trilhosAdjacentes == -1:
-		print("Sem trilhos adjacentes")
-		return -1
-
-	if trilhosAdjacentes == Direcao.proximo_sentido(sentidoAtual):
-		return trilhosAdjacentes
-
-	if trilhosAdjacentes == Direcao.avancar_sentido(sentidoAtual, 2):
-		return Direcao.avancar_sentido(sentidoAtual, 3)
-
-	return -1
-
-# Aplica uma peca na celula usando o angulo informado para sua rotacao.
-func _colocar_peca(posicao: Vector3i, idPeca: int, rotacaoY: float) -> void:
-	var orientacao: int = Direcao.orientacao_do_angulo(rotacaoY, self)
-	set_cell_item(posicao, idPeca, orientacao)
+# Aplica uma peça na célula usando o ângulo informado para sua rotação.
+func _colocar_peca(posicao: Vector3i, id_peca: int, rotacao_y: float) -> void:
+	var orientacao: int = Direcao.orientacao_do_angulo(rotacao_y, self)
+	set_cell_item(posicao, id_peca, orientacao)

@@ -1,79 +1,70 @@
-
 class_name Player
 extends Node3D
 
-const SPEED = 20.0
-@export var grid_trilhos: Trilhos
-var eixo_trilho: Direcao.Eixo = Direcao.Eixo.Z
-var sentido_trilho: Direcao.Sentido = Direcao.Sentido.CIMA
-var indice_inventario: int = 0
-const max_itens: int = 3
-var inventario_jogador: Dictionary = {
-	0: "Mão",
-	1: "Trilho_Reto",
-	2: "Trilho_Curvo",
+# Emitido quando o item selecionado ou a orientação do trilho mudam (útil para HUD).
+signal selecao_mudou(item: int, sentido: Direcao.Sentido)
+
+# A ordem define o índice no inventário.
+enum Item {
+	MAO,
+	TRILHO_RETO,
+	TRILHO_CURVO,
 }
-var mudou_inventario: bool = true
+
+const VELOCIDADE: float = 20.0
+
+@export var grid_trilhos: Trilhos
+
+var indice_inventario: int = Item.MAO
+# O eixo do trilho reto é derivado do sentido (Direcao.eixo_do_sentido).
+var sentido_trilho: Direcao.Sentido = Direcao.Sentido.CIMA
+
+func _ready() -> void:
+	if not is_instance_valid(grid_trilhos):
+		print("O jogador precisa de um nó Trilhos atribuído em grid_trilhos.")
+		set_process_unhandled_input(false)
+		return
+	_notificar_selecao()
 
 func _physics_process(delta: float) -> void:
-	_handle_movement(delta)
-	colocar_trilho(grid_trilhos.local_to_map(grid_trilhos.to_local(global_position)))
-	trocar_lado_trilho()
-	mudar_indice()
-	print_inventario()
+	_mover(delta)
 
-func print_inventario():
-	if mudou_inventario:
-		mudou_inventario = false
-		print(indice_inventario, " ", eixo_trilho, " ", sentido_trilho)
+# Ações discretas tratadas por evento, em vez de consultadas a cada frame.
+func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("place"):
+		_colocar_trilho()
+	if event.is_action_pressed("changeNext"):
+		_mudar_indice(1)
+	if event.is_action_pressed("changePrev"):
+		_mudar_indice(-1)
+	if event.is_action_pressed("next"):
+		_girar_trilho(1)
+	if event.is_action_pressed("prev"):
+		_girar_trilho(-1)
 
+func _mover(delta: float) -> void:
+	var entrada: Vector2 = Input.get_vector("left", "right", "up", "down")
+	global_position += Vector3(entrada.x, 0.0, entrada.y) * VELOCIDADE * delta
 
-func _handle_movement(delta: float) -> void:
-	var direction := Vector3.ZERO
-
-	if Input.is_action_pressed("up"):
-		direction.z -= 1
-
-	if Input.is_action_pressed("down"):
-		direction.z += 1
-
-	if Input.is_action_pressed("left"):
-		direction.x -= 1
-
-	if Input.is_action_pressed("right"):
-		direction.x += 1
-
-	direction = direction.normalized()
-	global_position += direction * SPEED * delta
-
-func remover_trilho(posicao: Vector3i)-> void:
+func remover_trilho(posicao: Vector3i) -> void:
 	grid_trilhos.remover_trilho(posicao)
 
-func mudar_indice() -> void:
-	if Input.is_action_just_pressed("changeNext"):
-		mudou_inventario = true
-		indice_inventario = (indice_inventario + 1) % max_itens
-		
-	if Input.is_action_just_pressed("changePrev"):
-		mudou_inventario = true
-		indice_inventario = (indice_inventario - 1 + max_itens) % max_itens
+func _mudar_indice(passo: int) -> void:
+	indice_inventario = posmod(indice_inventario + passo, Item.size())
+	_notificar_selecao()
 
-func colocar_trilho(posicao: Vector3i)-> void:
-	if Input.is_action_just_pressed("place"):
-		print("tentando colocar trilho")
-		if inventario_jogador[indice_inventario] == "Trilho_Reto":
-			print("trilho colocado")
-			grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.RETO, sentido_trilho)
-		if inventario_jogador[indice_inventario] == "Trilho_Curvo":
-			print("trilho colocado")
-			grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.CURVA, sentido_trilho)
+func _girar_trilho(passos: int) -> void:
+	sentido_trilho = Direcao.avancar_sentido(sentido_trilho, passos)
+	_notificar_selecao()
 
-func trocar_lado_trilho()->void:
-	if Input.is_action_just_pressed("next"):
-		mudou_inventario = true
-		sentido_trilho = Direcao.proximo_sentido(sentido_trilho)
-		eixo_trilho = Direcao.proximo_eixo(eixo_trilho)
-	if Input.is_action_just_pressed("prev"):
-		mudou_inventario = true
-		sentido_trilho = Direcao.avancar_sentido(sentido_trilho, 3)
-		eixo_trilho = Direcao.proximo_eixo(eixo_trilho)
+func _colocar_trilho() -> void:
+	var posicao: Vector3i = grid_trilhos.local_to_map(grid_trilhos.to_local(global_position))
+	match indice_inventario:
+		Item.TRILHO_RETO:
+			grid_trilhos.colocar_reto(posicao, Direcao.eixo_do_sentido(sentido_trilho))
+		Item.TRILHO_CURVO:
+			grid_trilhos.colocar_curva(posicao, sentido_trilho)
+
+func _notificar_selecao() -> void:
+	selecao_mudou.emit(indice_inventario, sentido_trilho)
+	print(Item.find_key(indice_inventario), " ", Direcao.nome(sentido_trilho))

@@ -1,27 +1,21 @@
 class_name Circuito
 extends RefCounted
 
-static func criar(trilhos: Trilhos, posicao: Vector3i, sentido: Direcao.Sentido) -> void:
-	var posicao_trilho: Vector3i = posicao
-	var proximo_sentido: Direcao.Sentido = sentido
+# Trilhos retos entre duas curvas (o lado completo tem esse número + 1 curva).
+const RETOS_POR_LADO: int = 4
 
-	for lado in range(4):
-		for passo in range(4):
-			posicao_trilho += Direcao.deslocamento(proximo_sentido)
-			if (proximo_sentido == Direcao.Sentido.ESQUERDA or proximo_sentido == Direcao.Sentido.DIREITA):
-				_trilho_reto_eixo_x(trilhos, posicao_trilho)
-			else:
-				_trilho_reto_eixo_z(trilhos, posicao_trilho)
+# Desenha um circuito quadrado a partir de `posicao`.
+# Atenção: o circuito fecha sobre a própria `posicao`, então a última curva
+# substitui a peça que estiver nessa célula (a do trem, no modo demo).
+static func criar(trilhos: Trilhos, posicao: Vector3i, sentido: Direcao.Sentido, retos_por_lado: int = RETOS_POR_LADO) -> void:
+	var posicao_atual: Vector3i = posicao
+	var sentido_atual: Direcao.Sentido = sentido
 
-		posicao_trilho += Direcao.deslocamento(proximo_sentido)
-		_trilho_reto_curvo(trilhos, posicao_trilho, Direcao.sentido_oposto(proximo_sentido))
-		proximo_sentido = Direcao.proximo_sentido(proximo_sentido)
+	for _lado in range(4):
+		for _passo in range(retos_por_lado):
+			posicao_atual += Direcao.deslocamento(sentido_atual)
+			trilhos.colocar_reto(posicao_atual, Direcao.eixo_do_sentido(sentido_atual))
 
-static func _trilho_reto_eixo_x(trilhos: Trilhos, posicao: Vector3i) -> void:
-	trilhos.configurar_trilho(posicao, Direcao.Eixo.X, Trilhos.TipoTrilho.RETO, Direcao.Sentido.DIREITA)
-
-static func _trilho_reto_eixo_z(trilhos: Trilhos, posicao: Vector3i) -> void:
-	trilhos.configurar_trilho(posicao, Direcao.Eixo.Z, Trilhos.TipoTrilho.RETO, Direcao.Sentido.DIREITA)
-
-static func _trilho_reto_curvo(trilhos: Trilhos, posicao: Vector3i, direcao: Direcao.Sentido) -> void:
-	trilhos.configurar_trilho(posicao, Direcao.Eixo.Z, Trilhos.TipoTrilho.CURVA, direcao)
+		posicao_atual += Direcao.deslocamento(sentido_atual)
+		trilhos.colocar_curva(posicao_atual, Direcao.sentido_oposto(sentido_atual))
+		sentido_atual = Direcao.proximo_sentido(sentido_atual)

@@ -1,20 +1,25 @@
 extends Camera3D
 
-const RAY_LENGTH = 1000.0
+# Emitido com o ponto 3D atingido quando o jogador clica em algo com colisão.
+signal ponto_clicado(posicao: Vector3)
 
-func _input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var mouse_pos = get_viewport().get_mouse_position()
-		var space_state = get_world_3d().direct_space_state
-		
-		# Cria os pontos de início e fim do raio
-		var origin = project_ray_origin(mouse_pos)
-		var end = origin + project_ray_normal(mouse_pos) * RAY_LENGTH
-		
-		# Configura a consulta de física (PhysicsRayQueryParameters3D)
-		var query = PhysicsRayQueryParameters3D.create(origin, end)
-		var result = space_state.intersect_ray(query)
-		
-		if result:
-			# result["position"] contém o Vector3 exato do ponto atingido no objeto 3D
-			print("Clicou no objeto em:", result["position"])
+const RAY_LENGTH: float = 1000.0
+
+# _unhandled_input: cliques em botões/menus (UI) não disparam o raio.
+func _unhandled_input(event: InputEvent) -> void:
+	var clique := event as InputEventMouseButton
+	if clique == null or not clique.pressed or clique.button_index != MOUSE_BUTTON_LEFT:
+		return
+
+	# Raio da câmera até o ponto clicado (usa a posição do próprio evento).
+	var origem: Vector3 = project_ray_origin(clique.position)
+	var fim: Vector3 = origem + project_ray_normal(clique.position) * RAY_LENGTH
+
+	var consulta := PhysicsRayQueryParameters3D.create(origem, fim)
+	var resultado: Dictionary = get_world_3d().direct_space_state.intersect_ray(consulta)
+
+	if resultado.is_empty():
+		return
+
+	print("Clicou no objeto em:", resultado["position"])
+	ponto_clicado.emit(resultado["position"])
