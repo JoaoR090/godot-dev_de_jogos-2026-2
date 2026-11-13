@@ -18,6 +18,7 @@ enum Estado {
 @export var depurar: bool = false
 
 var estado: Estado = Estado.AGUARDANDO
+var _som_batida_tocado: bool = false
 
 # Aguarda o tempo inicial configurado e inicia o movimento automático.
 func _ready() -> void:
@@ -63,6 +64,9 @@ func _process(_delta: float) -> void:
 
 	if saidas.is_empty():
 		print("Game Over")
+		if not _som_batida_tocado:
+			_som_batida_tocado = true
+			trem.tocar_batida()
 		encerrar_jogo()
 		return
 
