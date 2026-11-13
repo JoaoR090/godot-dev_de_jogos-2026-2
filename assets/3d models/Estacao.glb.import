@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b4uj37vpdw73k"
-path="res://.godot/imported/vagao.glb-eefbf1b099880a4f63ac0ff8d619b5d9.scn"
+uid="uid://dvchiqwy52tia"
+path="res://.godot/imported/Estacao.glb-3015ba131d44f1c3d50b1af98e1355a0.scn"
 
 [deps]
 
-source_file="res://assets/3d models/vagao.glb"
-dest_files=["res://.godot/imported/vagao.glb-eefbf1b099880a4f63ac0ff8d619b5d9.scn"]
+source_file="res://assets/3d models/Estacao.glb"
+dest_files=["res://.godot/imported/Estacao.glb-3015ba131d44f1c3d50b1af98e1355a0.scn"]
 
 [params]
 

@@ -34,7 +34,7 @@ trem = NodePath("../Trem")
 tempo_inicial = 0.0
 criar_circuito_demo = true
 
-[node name="HudInventario" type="CanvasLayer" parent="." node_paths=PackedStringArray("jogador")]
+[node name="HudInventario" type="CanvasLayer" parent="." unique_id=959760242 node_paths=PackedStringArray("jogador")]
 script = ExtResource("7_hud")
 jogador = NodePath("../Player")
 
