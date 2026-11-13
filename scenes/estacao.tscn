@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://c1i8224206cbq"]
 
+[ext_resource type="PackedScene" uid="uid://csr1ttuw7o75s" path="res://assets/3d models/Estacao.glb" id="1_2p52o"]
+
 [node name="Estacao" type="Node3D" unique_id=1099004966]
 
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=475295314]
+[node name="Estacao2" parent="." unique_id=1667715553 instance=ExtResource("1_2p52o")]
