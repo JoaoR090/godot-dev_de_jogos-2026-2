@@ -6,6 +6,12 @@ extends Node3D
 signal inventario_alterado
 
 const VELOCIDADE: float = 20.0
+const SFX_WALK: AudioStream = preload("res://assets/sfx/walkstep.wav")
+const SFX_PLACE: AudioStream = preload("res://assets/sfx/place.wav")
+
+var _audio_walk: AudioStreamPlayer
+var _audio_place: AudioStreamPlayer
+var _passos_andados: int = 0
 
 const ITEM_MAO: String = "Mão"
 const ITEM_TRILHO_RETO: String = "Trilho_Reto"
@@ -43,6 +49,21 @@ var _material_preview: StandardMaterial3D
 
 
 func _ready() -> void:
+	if AudioServer.get_bus_index("SFX") == -1:
+		AudioServer.add_bus()
+		var bus_sfx := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(bus_sfx, "SFX")
+		AudioServer.set_bus_send(bus_sfx, "Master")
+	_audio_walk = AudioStreamPlayer.new()
+	_audio_walk.stream = SFX_WALK
+	_audio_walk.bus = "SFX"
+	_audio_walk.volume_db = -6.0
+	add_child(_audio_walk)
+	_audio_place = AudioStreamPlayer.new()
+	_audio_place.stream = SFX_PLACE
+	_audio_place.bus = "SFX"
+	add_child(_audio_place)
+
 	if not is_instance_valid(grid_trilhos):
 		print("O jogador precisa de um nó Trilhos atribuído em grid_trilhos.")
 	_criar_preview()
@@ -109,6 +130,9 @@ func _mover_em_grade(delta: float) -> void:
 	_alvo_grade = grid_trilhos.to_global(grid_trilhos.map_to_local(celula_alvo))
 	_alvo_grade.y = global_position.y
 	_movendo_grade = true
+	_passos_andados += 1
+	if _passos_andados % 2 == 0 and is_instance_valid(_audio_walk):
+		_audio_walk.play()
 
 
 func _celula_jogador() -> Vector3i:
@@ -228,8 +252,12 @@ func colocar_trilho() -> void:
 	match _item_atual():
 		ITEM_TRILHO_RETO:
 			grid_trilhos.colocar_reto(posicao, eixo_trilho)
+			if is_instance_valid(_audio_place):
+				_audio_place.play()
 		ITEM_TRILHO_CURVO:
 			grid_trilhos.colocar_curva(posicao, sentido_trilho)
+			if is_instance_valid(_audio_place):
+				_audio_place.play()
 
 func remover_trilho() -> void:
 	if not Input.is_action_pressed("break"):
