@@ -1,11 +1,20 @@
 [gd_scene format=3 uid="uid://ce0gs8vq2o6w4"]
 
 [ext_resource type="PackedScene" uid="uid://cec52okbje21n" path="res://assets/3d models/arvore.glb" id="1_1px7c"]
+[ext_resource type="PackedScene" uid="uid://bq46y6gqoyrlw" path="res://assets/3d models/pedra.glb" id="1_xrd0t"]
+[ext_resource type="PackedScene" uid="uid://dvchiqwy52tia" path="res://assets/3d models/estacao.glb" id="1_yrmm2"]
+[ext_resource type="PackedScene" uid="uid://cgb5upbprx7x2" path="res://assets/3d models/agua.glb" id="2_0ygoq"]
 [ext_resource type="PackedScene" uid="uid://bvua1eqvrrct4" path="res://assets/3d models/Terra.glb" id="2_xrd0t"]
 [ext_resource type="PackedScene" uid="uid://cfolhppjdqaoc" path="res://assets/3d models/Trilho.glb" id="4_3caph"]
 [ext_resource type="PackedScene" uid="uid://drb0kp82m3vkf" path="res://assets/3d models/Trilho_curvo.glb" id="5_n3j6n"]
 
 [node name="Meshlibrary" type="Node3D" unique_id=695333963]
+
+[node name="estacao" parent="." unique_id=486315180 instance=ExtResource("1_yrmm2")]
+
+[node name="pedra" parent="." unique_id=2036638424 instance=ExtResource("1_xrd0t")]
+
+[node name="agua" parent="." unique_id=706166063 instance=ExtResource("2_0ygoq")]
 
 [node name="Trilho" parent="." unique_id=1553221531 instance=ExtResource("4_3caph")]
 

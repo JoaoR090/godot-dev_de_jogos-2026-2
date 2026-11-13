@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://b4uj37vpdw73k"
-path="res://.godot/imported/vagao.glb-eefbf1b099880a4f63ac0ff8d619b5d9.scn"
+uid="uid://bq46y6gqoyrlw"
+path="res://.godot/imported/pedra.glb-2948a06e19230398aed7e6a8d8138909.scn"
 
 [deps]
 
-source_file="res://assets/3d models/vagao.glb"
-dest_files=["res://.godot/imported/vagao.glb-eefbf1b099880a4f63ac0ff8d619b5d9.scn"]
+source_file="res://assets/3d models/pedra.glb"
+dest_files=["res://.godot/imported/pedra.glb-2948a06e19230398aed7e6a8d8138909.scn"]
 
 [params]
 
