@@ -14,21 +14,6 @@ signal inventario_alterado
 
 
 func _ready() -> void:
-	if AudioServer.get_bus_index("SFX") == -1:
-		AudioServer.add_bus()
-		var bus_sfx := AudioServer.bus_count - 1
-		AudioServer.set_bus_name(bus_sfx, "SFX")
-		AudioServer.set_bus_send(bus_sfx, "Master")
-	_audio_walk = AudioStreamPlayer.new()
-	_audio_walk.stream = SFX_WALK
-	_audio_walk.bus = "SFX"
-	_audio_walk.volume_db = -6.0
-	add_child(_audio_walk)
-	_audio_place = AudioStreamPlayer.new()
-	_audio_place.stream = SFX_PLACE
-	_audio_place.bus = "SFX"
-	add_child(_audio_place)
-
 	if not is_instance_valid(grid_trilhos):
 		push_error("Atribua o GridMap de trilhos no Player.")
 		return

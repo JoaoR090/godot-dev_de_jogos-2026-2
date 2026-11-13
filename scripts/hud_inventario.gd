@@ -6,7 +6,6 @@ extends CanvasLayer
 ## para selecionar o item.
 
 const CAMINHO_ICONES: String = "res://assets/hud/trilhos/"
-const CAMINHO_MUSICA: String = "res://assets/music/planice-sem-trem.wav"
 
 const COR_BORDA_SLOT: Color = Color("#514467")
 const COR_BORDA_SLOT_ATIVO: Color = Color("#ffe0a3")
@@ -44,31 +43,11 @@ var _fundo_slot_normal: GradientTexture2D
 var _fundo_slot_hover: GradientTexture2D
 var _fundo_slot_ativo: GradientTexture2D
 
-var _musica: AudioStreamPlayer
-var _slider_volume: HSlider
-var _slider_musica: HSlider
-
 
 func _ready() -> void:
 	layer = 10
-	_configurar_barramentos_audio()
 	_localizar_jogador()
 	_construir_interface()
-	_criar_controles_audio()
-
-	_musica = AudioStreamPlayer.new()
-	var stream_musica: AudioStream = _criar_stream_musica()
-	if stream_musica == null:
-		push_error("Não foi possível carregar %s" % CAMINHO_MUSICA)
-	else:
-		_musica.stream = stream_musica
-	_musica.bus = "Music"
-	_musica.volume_db = 0.0
-	_musica.process_mode = Node.PROCESS_MODE_ALWAYS
-	add_child(_musica)
-	_musica.finished.connect(_ao_musica_terminar)
-	if stream_musica != null and not _musica.playing:
-		_musica.play()
 
 	if is_instance_valid(jogador):
 		_vincular_jogador()
@@ -381,107 +360,3 @@ func _criar_estilo(
 	estilo.content_margin_bottom = margem
 
 	return estilo
-
-
-func _configurar_barramentos_audio() -> void:
-	var bus_sfx := AudioServer.get_bus_index("SFX")
-	if bus_sfx == -1:
-		AudioServer.add_bus()
-		bus_sfx = AudioServer.bus_count - 1
-		AudioServer.set_bus_name(bus_sfx, "SFX")
-		AudioServer.set_bus_send(bus_sfx, "Master")
-	AudioServer.set_bus_mute(bus_sfx, false)
-
-	var bus_musica := AudioServer.get_bus_index("Music")
-	if bus_musica == -1:
-		AudioServer.add_bus()
-		bus_musica = AudioServer.bus_count - 1
-		AudioServer.set_bus_name(bus_musica, "Music")
-		AudioServer.set_bus_send(bus_musica, "Master")
-	AudioServer.set_bus_mute(bus_musica, false)
-	AudioServer.set_bus_volume_db(bus_musica, 0.0)
-
-
-func _criar_controles_audio() -> void:
-	var margem := MarginContainer.new()
-	margem.name = "ControlesAudio"
-	margem.anchor_left = 1.0
-	margem.anchor_top = 1.0
-	margem.anchor_right = 1.0
-	margem.anchor_bottom = 1.0
-	margem.offset_left = -180.0
-	margem.offset_top = -56.0
-	margem.offset_right = -12.0
-	margem.offset_bottom = -12.0
-	margem.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	margem.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	add_child(margem)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
-	margem.add_child(vbox)
-
-	_slider_volume = _criar_slider_linha(vbox, "Volume", "SFX", 0.5)
-	_slider_musica = _criar_slider_linha(vbox, "Música", "Music", 0.1)
-
-func _criar_slider_linha(pai: VBoxContainer, rotulo: String, bus: String, valor_inicial: float = 1.0) -> HSlider:
-	var linha := HBoxContainer.new()
-	linha.add_theme_constant_override("separation", 4)
-	pai.add_child(linha)
-
-	var texto := Label.new()
-	texto.text = rotulo
-	texto.custom_minimum_size.x = 46.0
-	texto.add_theme_font_size_override("font_size", 10)
-	texto.modulate = Color(1, 1, 1, 0.85)
-	linha.add_child(texto)
-
-	var slider := HSlider.new()
-	slider.min_value = 0.0
-	slider.max_value = 1.0
-	slider.step = 0.01
-	slider.value = valor_inicial
-	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	slider.custom_minimum_size = Vector2(100.0, 12.0)
-	slider.value_changed.connect(_ao_alterar_volume.bind(bus))
-	linha.add_child(slider)
-
-	_ao_alterar_volume(valor_inicial, bus)
-	return slider
-
-
-func _ao_alterar_volume(valor: float, bus: String) -> void:
-	var indice := AudioServer.get_bus_index(bus)
-	if indice == -1:
-		return
-	AudioServer.set_bus_volume_db(indice, linear_to_db(maxf(valor, 0.0001)))
-	AudioServer.set_bus_mute(indice, valor <= 0.001)
-
-
-# Monta um AudioStreamWAV diretamente do arquivo para evitar depender do
-# recurso importado (que estava chegando vazio no player de música).
-func _criar_stream_musica() -> AudioStreamWAV:
-	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(CAMINHO_MUSICA)
-	if bytes.is_empty():
-		return null
-	if bytes.size() < 44:
-		return null
-	if bytes.decode_u8(0) != 0x52 or bytes.decode_u8(1) != 0x49 or bytes.decode_u8(2) != 0x46:
-		return null
-	# Os dados PCM começam após o chunk 44-byte "RIFF....WAVEfmt ".
-	var dados: PackedByteArray = bytes.slice(44, bytes.size())
-	var stream := AudioStreamWAV.new()
-	stream.format = AudioStreamWAV.FORMAT_16_BITS
-	stream.stereo = true
-	stream.mix_rate = 48000
-	stream.loop_mode = AudioStreamWAV.LOOP_FORWARD
-	stream.loop_begin = 0
-	# loop_end é em frames (amostras por canal); 1 frame = 2 canais * 2 bytes.
-	stream.loop_end = dados.size() / 4
-	stream.data = dados
-	return stream
-
-
-func _ao_musica_terminar() -> void:
-	if is_instance_valid(_musica):
-		_musica.play()
