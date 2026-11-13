@@ -1,32 +1,30 @@
 [gd_scene format=3 uid="uid://01xhvgi4c5ue"]
 
 [ext_resource type="PackedScene" uid="uid://cbv5ee1ok63ed" path="res://scenes/trem.tscn" id="1_tbgi4"]
-[ext_resource type="PackedScene" uid="uid://cs8jbjwr7ut0t" path="res://scenes/chao.tscn" id="2_tefeu"]
 [ext_resource type="PackedScene" uid="uid://c1i8224206cbq" path="res://scenes/estacao.tscn" id="3_o6xl0"]
 [ext_resource type="PackedScene" uid="uid://c4cvju0a3ykmm" path="res://scenes/player.tscn" id="4_tipki"]
 [ext_resource type="PackedScene" uid="uid://c44cj7nu3yej3" path="res://scenes/trilho.tscn" id="5_85g3d"]
 [ext_resource type="Script" uid="uid://dh1h8lgcd7dwn" path="res://scripts/controlador_de_jogo.gd" id="6_ctrl"]
+[ext_resource type="PackedScene" uid="uid://dhthhnt23ewhy" path="res://scenes/biomas/planice_mapa.tscn" id="6_tefeu"]
 [ext_resource type="Script" uid="uid://bsjid102iegkx" path="res://scripts/hud_inventario.gd" id="7_hud"]
 
 [node name="Main" type="Node3D" unique_id=1502751328]
 
 [node name="Trem" parent="." unique_id=250326021 node_paths=PackedStringArray("trilhos") instance=ExtResource("1_tbgi4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.605911, 0, 20.976421)
 trilhos = NodePath("../Trilhos")
 direcao_inicial = 2
 
-[node name="Chao" parent="." unique_id=787760350 instance=ExtResource("2_tefeu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
-data = {
-"cells": PackedInt32Array()
-}
-
 [node name="Estacao" parent="." unique_id=1099004966 instance=ExtResource("3_o6xl0")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.083462, 0, 20.976421)
 
 [node name="Player" parent="." unique_id=1211023565 node_paths=PackedStringArray("grid_trilhos") instance=ExtResource("4_tipki")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.85062, 0, 27.660137)
 grid_trilhos = NodePath("../Trilhos")
 
 [node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+cell_center_y = false
 
 [node name="ControladorDeJogo" type="Node" parent="." unique_id=1941115670 node_paths=PackedStringArray("trem")]
 script = ExtResource("6_ctrl")
@@ -38,3 +36,5 @@ jogador = NodePath("../Player")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1630397822]
 transform = Transform3D(1, 0, 0, 0, 8.940697e-08, 1, 0, -1, 8.940697e-08, 0, 20, 0)
+
+[node name="planice_mapa" parent="." unique_id=1369888334 instance=ExtResource("6_tefeu")]

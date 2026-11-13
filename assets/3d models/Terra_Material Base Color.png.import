@@ -2,14 +2,11 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dptmxffkl71xg"
+uid="uid://cd0ys4xpsalfc"
 path.s3tc="res://.godot/imported/Terra_Material Base Color.png-a0039d4a182434a941445d482f53723d.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
-}
-generator_parameters={
-"md5": "bc5fe30b609f5431049227c18e8bd68c"
 }
 
 [deps]
