@@ -24,7 +24,7 @@ var inventario_jogador: Dictionary = {
 }
 
 var sentido_trilho: Direcao.Sentido = Direcao.Sentido.CIMA
-# O eixo do trilho reto é derivado do sentido (somente leitura).
+
 var eixo_trilho: Direcao.Eixo:
 	get:
 		return Direcao.eixo_do_sentido(sentido_trilho)
@@ -52,43 +52,32 @@ func _ready() -> void:
 func _physics_process(delta: float) -> void:
 	_mover_em_grade(delta)
 	colocar_trilho()  # fica aqui porque permite segurar o botão para colocar vários
+	remover_trilho()
 	_atualizar_preview()
 
 
 # Ações discretas tratadas por evento, em vez de consultadas a cada frame.
 func _unhandled_input(evento: InputEvent) -> void:
+
+	# Mudar índice do inventario atráves da roda do mouse
 	if evento.is_action_pressed("changeNext"):
 		_definir_indice(posmod(indice_inventario + 1, max_itens))
 	if evento.is_action_pressed("changePrev"):
 		_definir_indice(posmod(indice_inventario - 1, max_itens))
+
+	# Mudar a direção que trilho esta atráeves das teclas 'q' e 'e'
 	if evento.is_action_pressed("next"):
 		_girar_trilho(1)
 	if evento.is_action_pressed("prev"):
 		_girar_trilho(-1)
 
-	_atalhos_numericos(evento)
-
-
-# Atalhos numéricos: 1 = mão, 2 = reto, 3 = curva.
-func _atalhos_numericos(evento: InputEvent) -> void:
-	if not (evento is InputEventKey):
-		return
-
-	var tecla := evento as InputEventKey
-	if not tecla.pressed or tecla.echo:
-		return
-
-	var codigo: Key = tecla.keycode
-	if codigo == KEY_NONE:
-		codigo = tecla.physical_keycode
-
-	match codigo:
-		KEY_1, KEY_KP_1:
-			selecionar_item(0)
-		KEY_2, KEY_KP_2:
-			selecionar_item(1)
-		KEY_3, KEY_KP_3:
-			selecionar_item(2)
+	# Selecionar índice do inventário
+	if evento.is_action_pressed("1"):
+		selecionar_item(0)
+	if evento.is_action_pressed("2"):
+		selecionar_item(1)
+	if evento.is_action_pressed("3"):
+		selecionar_item(2)
 
 
 func _mover_em_grade(delta: float) -> void:
@@ -153,11 +142,6 @@ func _celula_alvo_colocacao() -> Dictionary:
 	var dz: int = clampi(alvo.z - centro.z, -raio_colocacao, raio_colocacao)
 	alvo = centro + Vector3i(dx, 0, dz)
 	return {"valida": true, "celula": alvo}
-
-
-func remover_trilho(posicao: Vector3i) -> void:
-	grid_trilhos.remover_trilho(posicao)
-
 
 func _item_atual() -> String:
 	return str(inventario_jogador.get(indice_inventario, ""))
@@ -235,8 +219,8 @@ func colocar_trilho() -> void:
 	var primeiro_clique: bool = Input.is_action_just_pressed("place")
 	# Primeiro clique: repõe mesmo se já houver trilho na célula.
 	# Para exigir célula vazia também no primeiro clique, descomente a checagem abaixo.
-	# if grid_trilhos.tem_trilho(posicao):
-	# 	return
+	if grid_trilhos.tem_trilho(posicao):
+		return
 	# Ao segurar, só coloca em células vazias.
 	if not primeiro_clique and grid_trilhos.tem_trilho(posicao):
 		return
@@ -247,6 +231,22 @@ func colocar_trilho() -> void:
 		ITEM_TRILHO_CURVO:
 			grid_trilhos.colocar_curva(posicao, sentido_trilho)
 
+func remover_trilho() -> void:
+	if not Input.is_action_pressed("break"):
+		return
+	# Cliques sobre o HUD selecionam itens em vez de colocar trilhos.
+	if get_viewport().gui_get_hovered_control() != null:
+		return
+
+	if not is_instance_valid(grid_trilhos):
+		return
+
+	var alvo: Dictionary = _celula_alvo_colocacao()
+	if not alvo.get("valida", false):
+		return
+	var posicao: Vector3i = alvo.get("celula", _celula_jogador())
+		
+	grid_trilhos.remover_trilho(posicao)	
 
 # Cria a malha-fantasma usada para pré-visualizar o trilho selecionado.
 func _criar_preview() -> void:
