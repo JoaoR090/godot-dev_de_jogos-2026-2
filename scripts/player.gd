@@ -7,6 +7,13 @@ extends Node3D
 signal inventario_alterado
 
 const SPEED = 20.0
+
+# Movimento em grade: desloca uma célula por vez.
+var _movendo_grade: bool = false
+var _alvo_grade: Vector3 = Vector3.ZERO
+
+# Alcance de colocação em células a partir do jogador (1 = área 3x3).
+@export var raio_colocacao: int = 1
 @export var grid_trilhos: Trilhos
 var eixo_trilho: Direcao.Eixo = Direcao.Eixo.Z
 var sentido_trilho: Direcao.Sentido = Direcao.Sentido.CIMA
@@ -56,11 +63,10 @@ func _unhandled_input(evento: InputEvent) -> void:
 
 func _physics_process(delta: float) -> void:
 	_handle_movement(delta)
-	var posicao: Vector3i = grid_trilhos.local_to_map(grid_trilhos.to_local(global_position))
-	colocar_trilho(posicao)
+	colocar_trilho()
 	trocar_lado_trilho()
 	mudar_indice()
-	_atualizar_preview(posicao)
+	_atualizar_preview()
 	print_inventario()
 
 func print_inventario():
@@ -70,22 +76,67 @@ func print_inventario():
 
 
 func _handle_movement(delta: float) -> void:
-	var direction := Vector3.ZERO
+	if not is_instance_valid(grid_trilhos):
+		return
 
+	if _movendo_grade:
+		global_position = global_position.move_toward(_alvo_grade, SPEED * delta)
+		if global_position.distance_to(_alvo_grade) <= 0.001:
+			global_position = _alvo_grade
+			_movendo_grade = false
+		return
+
+	var direcao_grade := Vector3i.ZERO
 	if Input.is_action_pressed("up"):
-		direction.z -= 1
-
+		direcao_grade.z -= 1
 	if Input.is_action_pressed("down"):
-		direction.z += 1
-
+		direcao_grade.z += 1
 	if Input.is_action_pressed("left"):
-		direction.x -= 1
-
+		direcao_grade.x -= 1
 	if Input.is_action_pressed("right"):
-		direction.x += 1
+		direcao_grade.x += 1
 
-	direction = direction.normalized()
-	global_position += direction * SPEED * delta
+	if direcao_grade == Vector3i.ZERO:
+		return
+
+	var celula_atual: Vector3i = _celula_jogador()
+	var celula_alvo: Vector3i = celula_atual + direcao_grade
+	_alvo_grade = grid_trilhos.to_global(grid_trilhos.map_to_local(celula_alvo))
+	_alvo_grade.y = global_position.y
+	_movendo_grade = true
+
+
+func _celula_jogador() -> Vector3i:
+	return grid_trilhos.local_to_map(grid_trilhos.to_local(global_position))
+
+
+# Célula do grid sob o cursor, se estiver dentro do alcance ao redor do jogador.
+func _celula_alvo_colocacao() -> Dictionary:
+	if not is_instance_valid(grid_trilhos):
+		return {"valida": false, "celula": Vector3i.ZERO}
+
+	var centro: Vector3i = _celula_jogador()
+	var camera := get_viewport().get_camera_3d()
+	if camera == null:
+		return {"valida": false, "celula": centro}
+
+	var mouse: Vector2 = get_viewport().get_mouse_position()
+	var origem: Vector3 = camera.project_ray_origin(mouse)
+	var direcao: Vector3 = camera.project_ray_normal(mouse)
+
+	# Plano na altura da célula do jogador para projetar o cursor no grid.
+	var centro_mundo: Vector3 = grid_trilhos.to_global(grid_trilhos.map_to_local(centro))
+	var plano := Plane(Vector3.UP, centro_mundo.y)
+	var ponto = plano.intersects_ray(origem, direcao)
+	if ponto == null:
+		return {"valida": true, "celula": centro}
+
+	var alvo: Vector3i = grid_trilhos.local_to_map(grid_trilhos.to_local(ponto))
+	# Mantém o alvo dentro do alcance, na célula mais próxima do cursor.
+	var dx: int = clampi(alvo.x - centro.x, -raio_colocacao, raio_colocacao)
+	var dz: int = clampi(alvo.z - centro.z, -raio_colocacao, raio_colocacao)
+	alvo = centro + Vector3i(dx, 0, dz)
+	return {"valida": true, "celula": alvo}
 
 func remover_trilho(posicao: Vector3i)-> void:
 	grid_trilhos.remover_trilho(posicao)
@@ -154,19 +205,33 @@ func selecionar_item(indice: int) -> bool:
 	_definir_indice(indice)
 	return true
 
-func colocar_trilho(posicao: Vector3i)-> void:
-	if Input.is_action_just_pressed("place"):
-		# Cliques sobre o HUD selecionam itens em vez de colocar trilhos.
-		if get_viewport().gui_get_hovered_control() != null:
-			return
+func colocar_trilho() -> void:
+	if not Input.is_action_pressed("place"):
+		return
+	# Cliques sobre o HUD selecionam itens em vez de colocar trilhos.
+	if get_viewport().gui_get_hovered_control() != null:
+		return
+	if not is_instance_valid(grid_trilhos):
+		return
 
-		print("tentando colocar trilho")
-		if inventario_jogador[indice_inventario] == "Trilho_Reto":
-			print("trilho colocado")
-			grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.RETO, sentido_trilho)
-		if inventario_jogador[indice_inventario] == "Trilho_Curvo":
-			print("trilho colocado")
-			grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.CURVA, sentido_trilho)
+	var alvo: Dictionary = _celula_alvo_colocacao()
+	if not alvo.get("valida", false):
+		return
+	var posicao: Vector3i = alvo.get("celula", _celula_jogador())
+
+	var primeiro_clique: bool = Input.is_action_just_pressed("place")
+	# Primeiro clique: repõe mesmo se já houver trilho na célula.
+	# Para exigir célula vazia também no primeiro clique, descomente a checagem abaixo.
+	# if grid_trilhos.tem_trilho(posicao):
+	# 	return
+	# Ao segurar, só coloca em células vazias.
+	if not primeiro_clique and grid_trilhos.tem_trilho(posicao):
+		return
+
+	if inventario_jogador[indice_inventario] == "Trilho_Reto":
+		grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.RETO, sentido_trilho)
+	elif inventario_jogador[indice_inventario] == "Trilho_Curvo":
+		grid_trilhos.configurar_trilho(posicao, eixo_trilho, Trilhos.TipoTrilho.CURVA, sentido_trilho)
 
 # Cria a malha-fantasma usada para pré-visualizar o trilho selecionado.
 func _criar_preview() -> void:
@@ -185,12 +250,24 @@ func _criar_preview() -> void:
 	add_child(_preview)
 
 
-# Posiciona e orienta a prévia azul na grid onde o trilho seria colocado.
-func _atualizar_preview(posicao: Vector3i) -> void:
+# Posiciona e orienta a prévia azul na célula onde o trilho seria colocado.
+func _atualizar_preview() -> void:
 	if not is_instance_valid(_preview) or not is_instance_valid(grid_trilhos):
+		_atualizar_preview_visibilidade(false)
 		return
 	if grid_trilhos.mesh_library == null:
+		_atualizar_preview_visibilidade(false)
 		return
+	# Evita mostrar prévia quando o cursor está sobre o HUD.
+	if get_viewport().gui_get_hovered_control() != null:
+		_atualizar_preview_visibilidade(false)
+		return
+
+	var alvo: Dictionary = _celula_alvo_colocacao()
+	if not alvo.get("valida", false):
+		_atualizar_preview_visibilidade(false)
+		return
+	var posicao: Vector3i = alvo.get("celula", _celula_jogador())
 
 	var item: String = str(inventario_jogador.get(indice_inventario, ""))
 	var id_peca: int = -1
@@ -205,12 +282,12 @@ func _atualizar_preview(posicao: Vector3i) -> void:
 			rotacao = Direcao.angulo_do_sentido(sentido_trilho)
 
 	if id_peca < 0 or rotacao < 0.0:
-		_preview.visible = false
+		_atualizar_preview_visibilidade(false)
 		return
 
 	var malha: Mesh = grid_trilhos.mesh_library.get_item_mesh(id_peca)
 	if malha == null:
-		_preview.visible = false
+		_atualizar_preview_visibilidade(false)
 		return
 
 	_preview.mesh = malha
@@ -219,6 +296,11 @@ func _atualizar_preview(posicao: Vector3i) -> void:
 		grid_trilhos.map_to_local(posicao)
 	)
 	_preview.visible = true
+
+
+func _atualizar_preview_visibilidade(visivel: bool) -> void:
+	if is_instance_valid(_preview):
+		_preview.visible = visivel
 
 
 func trocar_lado_trilho()->void:
