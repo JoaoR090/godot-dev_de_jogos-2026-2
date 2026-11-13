@@ -11,7 +11,7 @@
 [node name="Main" type="Node3D" unique_id=1502751328]
 
 [node name="Trem" parent="." unique_id=250326021 node_paths=PackedStringArray("trilhos") instance=ExtResource("1_tbgi4")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.605911, 0, 20.976421)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.605911, 0, 15.976421)
 trilhos = NodePath("../Trilhos")
 direcao_inicial = 2
 
@@ -19,7 +19,7 @@ direcao_inicial = 2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.083462, 0, 20.976421)
 
 [node name="Player" parent="." unique_id=1211023565 node_paths=PackedStringArray("grid_trilhos") instance=ExtResource("4_tipki")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -21.85062, 0, 27.660137)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.85062, 0, 18.660137)
 grid_trilhos = NodePath("../Trilhos")
 
 [node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]
