@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bjjxtuib3apa"
-path="res://.godot/imported/trilho_reto.png-8117b83cdc18efaac969fb9666bfa749.ctex"
+uid="uid://cfq2x3r5gpypr"
+path="res://.godot/imported/Mao.png-58c4aa0d3b8827a0489d201be5460a1f.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/hud/trilhos/trilho_reto.png"
-dest_files=["res://.godot/imported/trilho_reto.png-8117b83cdc18efaac969fb9666bfa749.ctex"]
+source_file="res://assets/hud/trilhos/Mao.png"
+dest_files=["res://.godot/imported/Mao.png-58c4aa0d3b8827a0489d201be5460a1f.ctex"]
 
 [params]
 

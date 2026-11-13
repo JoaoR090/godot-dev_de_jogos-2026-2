@@ -290,11 +290,11 @@ func _textura_do_item(item: String) -> Texture2D:
 func _caminho_icone(item: String) -> String:
 	match item:
 		"Mão":
-			return CAMINHO_ICONES + "mao.png"
+			return CAMINHO_ICONES + "Mao.png"
 		"Trilho_Reto":
-			return CAMINHO_ICONES + "trilho_reto.png"
+			return CAMINHO_ICONES + "Trilho_reto.png"
 		"Trilho_Curvo":
-			return CAMINHO_ICONES + "trilho_lado.png"
+			return CAMINHO_ICONES + "Trilho_curvo.png"
 	return ""
 
 

@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b60vp75cmdsat"
-path="res://.godot/imported/trilho_lado.png-39e2dee2315c8b1ba880de9a382c69ae.ctex"
+path="res://.godot/imported/Trilho_curvo.png-074c7682af52ac3c1f0dabf11774e44c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/hud/trilhos/trilho_lado.png"
-dest_files=["res://.godot/imported/trilho_lado.png-39e2dee2315c8b1ba880de9a382c69ae.ctex"]
+source_file="res://assets/hud/trilhos/Trilho_curvo.png"
+dest_files=["res://.godot/imported/Trilho_curvo.png-074c7682af52ac3c1f0dabf11774e44c.ctex"]
 
 [params]
 
