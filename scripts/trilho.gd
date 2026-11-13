@@ -54,21 +54,35 @@ func tem_conexao(posicao: Vector3i, sentido: Direcao.Sentido) -> bool:
 		and _lados_abertos_da_celula(vizinha).has(Direcao.sentido_oposto(sentido))
 	)
 
-# Gira a curva no sentido horário na primeira posição válida
+# Gira a curva no sentido horário até a primeira orientação em que suas pontas
+# se encaixam nos trilhos vizinhos. Se nenhuma outra orientação encaixar, a curva
+# fica como estava. Retorna true se a curva girou.
+# `pontas_minimas`: 2 exige as duas pontas ligadas (evita deixar a curva
+# "meio conectada"); 1 aceita encaixar só uma ponta.
 func girar_curva_horario(posicao: Vector3i, pontas_minimas: int = 2) -> bool:
 	if get_cell_item(posicao) != ID_CURVO:
 		return false
 
-	var sentido_atual = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
+	var sentido_atual: Direcao.Sentido = Direcao.sentido_da_orientacao(get_cell_item_orientation(posicao), self)
 	if sentido_atual == Direcao.Sentido.INVALIDO:
 		return false
 
+	# Passos 1 a 3: a orientação atual não é candidata (a alavanca tem que mudar algo).
 	for passo in range(1, 4):
-		var candidato = Direcao.avancar_sentido(sentido_atual, passo)
+		var candidato: Direcao.Sentido = Direcao.avancar_sentido(sentido_atual, passo)
 		if _pontas_encaixadas(posicao, candidato) >= pontas_minimas:
 			colocar_curva(posicao, candidato)
 			return true
+
 	return false
+
+# Quantas das duas pontas da curva (nessa orientação) têm um vizinho aceitando.
+func _pontas_encaixadas(posicao: Vector3i, sentido: Direcao.Sentido) -> int:
+	var pontas: int = 0
+	for lado in lados_abertos(TipoTrilho.CURVA, sentido):
+		if _vizinho_aceita(posicao, lado):
+			pontas += 1
+	return pontas
 
 # Lados abertos da peça que está na célula (lista vazia se não houver trilho).
 func _lados_abertos_da_celula(posicao: Vector3i) -> Array[Direcao.Sentido]:
