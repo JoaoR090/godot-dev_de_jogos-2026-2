@@ -4,6 +4,10 @@ const RAY_LENGTH = 1000.0
 
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Evita que cliques no HUD também disparem a seleção 3D.
+		if get_viewport().gui_get_hovered_control() != null:
+			return
+
 		var mouse_pos = get_viewport().get_mouse_position()
 		var space_state = get_world_3d().direct_space_state
 		
