@@ -74,8 +74,8 @@ func _process(delta: float) -> void:
 
 # Conecta o HUD ao sinal do jogador e faz a primeira leitura do inventário.
 func _vincular_jogador() -> void:
-	if not jogador.inventario_alterado.is_connected(_atualizar_inventario):
-		jogador.inventario_alterado.connect(_atualizar_inventario)
+	if not jogador.inventario.inventario_alterado.is_connected(_atualizar_inventario):
+		jogador.inventario.inventario_alterado.connect(_atualizar_inventario)
 
 	_atualizar_inventario()
 
@@ -192,12 +192,12 @@ func _atualizar_inventario() -> void:
 		_mostrar_sem_jogador()
 		return
 
-	var quantidade: int = jogador.inventario_jogador.size()
+	var quantidade: int = jogador.inventario.inventario_jogador.size()
 	if quantidade != _slots.size():
 		_criar_slots(quantidade)
 
 	for indice in range(quantidade):
-		var item: String = str(jogador.inventario_jogador.get(indice, ""))
+		var item: String = str(jogador.inventario.inventario_jogador.get(indice, ""))
 		_slots[indice].tooltip_text = "Selecionar %s" % _nome_item(item)
 		_icones_slots[indice].texture = _textura_do_item(item)
 		_icones_slots[indice].rotation_degrees = _rotacao_icone(
@@ -211,7 +211,7 @@ func _atualizar_inventario() -> void:
 func _atualizar_aparencia_slots() -> void:
 	var indice_ativo: int = -1
 	if is_instance_valid(jogador):
-		indice_ativo = jogador.indice_inventario
+		indice_ativo = jogador.inventario.indice_inventario
 
 	for indice in range(_slots.size()):
 		var ativo: bool = indice == indice_ativo
@@ -270,8 +270,8 @@ func _ao_sair_slot(indice: int) -> void:
 
 
 func _quantidade_de_slots() -> int:
-	if is_instance_valid(jogador) and not jogador.inventario_jogador.is_empty():
-		return jogador.inventario_jogador.size()
+	if is_instance_valid(jogador) and not jogador.inventario.inventario_jogador.is_empty():
+		return jogador.inventario.inventario_jogador.size()
 	return QUANTIDADE_SLOTS_PADRAO
 
 

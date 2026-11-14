@@ -1,10 +1,18 @@
 class_name Trem
 extends Node3D
 
+const SFX_TREM_LOOP: AudioStream = preload("res://assets/sfx/train_rail_loop.mp3")
+const SFX_CRASH: AudioStream = preload("res://assets/sfx/crash.wav")
+const LOOP_REINICIO_MS: int = 5000
+
 @export var trilhos: Trilhos
 @export var direcao_inicial: Direcao.Sentido = Direcao.Sentido.CIMA
 # Velocidade em unidades de mundo por segundo.
 @export var velocity: float = 1.0
+
+var _audio_loop: AudioStreamPlayer3D
+var _audio_batida: AudioStreamPlayer3D
+var _loop_inicio_ms: int = -1
 
 var posicao_trem: Vector3i
 var direcao_trem: Direcao.Sentido
@@ -12,6 +20,33 @@ var _movendo: bool = false
 
 # Inicializa a posição e a orientação do trem na grade de trilhos.
 func _ready() -> void:
+	if AudioServer.get_bus_index("SFX") == -1:
+		AudioServer.add_bus()
+		var bus_sfx := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(bus_sfx, "SFX")
+		AudioServer.set_bus_send(bus_sfx, "Master")
+	_audio_loop = AudioStreamPlayer3D.new()
+	var stream_loop: AudioStream = SFX_TREM_LOOP
+	if stream_loop is AudioStreamMP3:
+		var mp3 := stream_loop as AudioStreamMP3
+		mp3.loop = true
+		mp3.loop_offset = 0.0
+	_audio_loop.stream = stream_loop
+	_audio_loop.bus = "SFX"
+	_audio_loop.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	_audio_loop.unit_size = 6.0
+	_audio_loop.max_distance = 64.0
+	add_child(_audio_loop)
+
+	_audio_batida = AudioStreamPlayer3D.new()
+	_audio_batida.stream = SFX_CRASH
+	_audio_batida.bus = "SFX"
+	_audio_batida.volume_db = 0.0
+	_audio_batida.attenuation_model = AudioStreamPlayer3D.ATTENUATION_INVERSE_DISTANCE
+	_audio_batida.unit_size = 6.0
+	_audio_batida.max_distance = 64.0
+	add_child(_audio_batida)
+
 	if not is_instance_valid(trilhos):
 		print("O trem precisa ter um nó Trilhos atribuído.")
 		return
@@ -64,8 +99,32 @@ func movimento(sentido: Direcao.Sentido) -> void:
 	_movendo = true
 	posicao_trem = proxima_posicao
 	direcao_trem = sentido
+	_garantir_loop_lancando()
 	await tween.finished
 	_movendo = false
+
+# Inicia o loop de trilhos se ainda não estiver tocando e se já se passaram
+# pelo menos LOOP_REINICIO_MS desde o último início (evita reiniciar a cada célula).
+func _garantir_loop_lancando() -> void:
+	if not is_instance_valid(_audio_loop):
+		return
+	if _audio_loop.playing:
+		return
+	var agora_ms := Time.get_ticks_msec()
+	if _loop_inicio_ms >= 0 and agora_ms - _loop_inicio_ms < LOOP_REINICIO_MS:
+		return
+	_loop_inicio_ms = agora_ms
+	_audio_loop.play()
+
+
+# Toca o som de batida no local do trem (one-shot) e encerra o loop de trilhos.
+func tocar_batida() -> void:
+	if is_instance_valid(_audio_loop):
+		_audio_loop.stop()
+	_loop_inicio_ms = -1
+	if is_instance_valid(_audio_batida):
+		_audio_batida.play()
+
 
 # Informa ao controlador se uma animação de movimento ainda está em andamento.
 func esta_movendo() -> bool:

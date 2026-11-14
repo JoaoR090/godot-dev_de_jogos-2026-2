@@ -4,6 +4,10 @@
 [ext_resource type="PackedScene" uid="uid://bd1n1m0qclmdg" path="res://assets/3d models/Player_placeholder.glb" id="2_qhqgy"]
 [ext_resource type="Script" uid="uid://bubnwomunqosk" path="res://scripts/camera.gd" id="3_qhqgy"]
 [ext_resource type="Shader" uid="uid://d26uoktbu74kr" path="res://scenes/player.gdshader" id="4_dqkch"]
+[ext_resource type="Script" uid="uid://fb5gnci31xvo" path="res://scripts/movimento_jogador.gd" id="4_fjrip"]
+[ext_resource type="Script" uid="uid://uthh3dln5ava" path="res://scripts/construcao_trilhos.gd" id="5_smehm"]
+[ext_resource type="Script" uid="uid://xb06qijt0t8p" path="res://scripts/inventario_jogador.gd" id="6_ur7pv"]
+[ext_resource type="Script" uid="uid://b74tuydgndq12" path="res://scripts/preview_trilhos.gd" id="7_y4r1p"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_c4xnf"]
 size = Vector2(50, 50)
@@ -30,9 +34,7 @@ shader_parameter/textura_nuvem = SubResource("NoiseTexture2D_dqkch")
 [node name="Player" type="Node3D" unique_id=1211023565]
 script = ExtResource("1_g2els")
 
-[node name="Sprite3D" type="Sprite3D" parent="." unique_id=1690538927]
-
-[node name="Player_placeholder" parent="Sprite3D" unique_id=319909477 instance=ExtResource("2_qhqgy")]
+[node name="Player_placeholder" parent="." unique_id=319909477 instance=ExtResource("2_qhqgy")]
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1756516102]
 transform = Transform3D(1, 0, 0, 0, 0.49999994, 0.8660254, 0, -0.8660254, 0.49999994, 0, 7, 4)
@@ -43,3 +45,16 @@ script = ExtResource("3_qhqgy")
 cast_shadow = 3
 mesh = SubResource("PlaneMesh_c4xnf")
 surface_material_override/0 = SubResource("ShaderMaterial_hm45h")
+
+[node name="MovimentoJogador" type="Node3D" parent="." unique_id=931376594]
+script = ExtResource("4_fjrip")
+
+[node name="ConstrucaoTrilhos" type="Node3D" parent="." unique_id=1754904376]
+script = ExtResource("5_smehm")
+
+[node name="InventarioJogador" type="Node3D" parent="." unique_id=1816109515]
+script = ExtResource("6_ur7pv")
+
+[node name="PreviewTrilhos" type="Node3D" parent="." unique_id=1726382948 node_paths=PackedStringArray("jogador")]
+script = ExtResource("7_y4r1p")
+jogador = NodePath("..")
