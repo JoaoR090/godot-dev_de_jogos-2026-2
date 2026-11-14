@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" uid="uid://dhthhnt23ewhy" path="res://scenes/biomas/planice_mapa.tscn" id="6_tefeu"]
 [ext_resource type="Script" uid="uid://bsjid102iegkx" path="res://scripts/hud_inventario.gd" id="7_hud"]
 
+[sub_resource type="Environment" id="Environment_hm45h"]
+
 [node name="Main" type="Node3D" unique_id=1502751328]
 
 [node name="Trem" parent="." unique_id=250326021 node_paths=PackedStringArray("trilhos") instance=ExtResource("1_tbgi4")]
@@ -36,5 +38,13 @@ jogador = NodePath("../Player")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1630397822]
 transform = Transform3D(1, 0, 0, 0, 8.940697e-08, 1, 0, -1, 8.940697e-08, 0, 20, 0)
+light_energy = 0.619
+light_volumetric_fog_energy = 3.828
+shadow_enabled = true
+shadow_opacity = 0.54
+shadow_blur = 2.151
 
 [node name="planice_mapa" parent="." unique_id=1369888334 instance=ExtResource("6_tefeu")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2013674662]
+environment = SubResource("Environment_hm45h")

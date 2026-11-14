@@ -3,6 +3,29 @@
 [ext_resource type="Script" uid="uid://cclvatm0tx7ja" path="res://scripts/player.gd" id="1_g2els"]
 [ext_resource type="PackedScene" uid="uid://bd1n1m0qclmdg" path="res://assets/3d models/Player_placeholder.glb" id="2_qhqgy"]
 [ext_resource type="Script" uid="uid://bubnwomunqosk" path="res://scripts/camera.gd" id="3_qhqgy"]
+[ext_resource type="Shader" uid="uid://d26uoktbu74kr" path="res://scenes/player.gdshader" id="4_dqkch"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_c4xnf"]
+size = Vector2(50, 50)
+center_offset = Vector3(0, 30, 0)
+
+[sub_resource type="Gradient" id="Gradient_qlg0r"]
+offsets = PackedFloat32Array(0.15678525, 0.5889328)
+colors = PackedColorArray(1, 1, 1, 1, 0.060402684, 0.060402684, 0.060402684, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dqkch"]
+seed = 6
+frequency = 0.005
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_dqkch"]
+noise = SubResource("FastNoiseLite_dqkch")
+color_ramp = SubResource("Gradient_qlg0r")
+seamless = true
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_hm45h"]
+render_priority = 0
+shader = ExtResource("4_dqkch")
+shader_parameter/textura_nuvem = SubResource("NoiseTexture2D_dqkch")
 
 [node name="Player" type="Node3D" unique_id=1211023565]
 script = ExtResource("1_g2els")
@@ -15,3 +38,8 @@ script = ExtResource("1_g2els")
 transform = Transform3D(1, 0, 0, 0, 0.49999994, 0.8660254, 0, -0.8660254, 0.49999994, 0, 7, 4)
 fov = 67.06188
 script = ExtResource("3_qhqgy")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=235205864]
+cast_shadow = 3
+mesh = SubResource("PlaneMesh_c4xnf")
+surface_material_override/0 = SubResource("ShaderMaterial_hm45h")
