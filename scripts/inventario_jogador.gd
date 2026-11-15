@@ -3,41 +3,62 @@ extends Node
 
 signal inventario_alterado
 
-const ITEM_MAO: String = "Mão"
-const ITEM_TRILHO_RETO: String = "Trilho_Reto"
-const ITEM_TRILHO_CURVO: String = "Trilho_Curvo"
-const MAX_ITENS: int = 3
+const ITEM_MAO = "Mão"
+const ITEM_TRILHO_RETO = "Trilho_Reto"
+const ITEM_TRILHO_CURVO = "Trilho_Curvo"
+const MAX_ITENS = 3
+const MADEIRA_INICIAL = 30
 
-var indice_inventario: int = 0
+var indice_inventario = 0
+var madeira = MADEIRA_INICIAL
 
-var inventario_jogador: Dictionary = {
+var inventario_jogador = {
 	0: ITEM_MAO,
 	1: ITEM_TRILHO_RETO,
 	2: ITEM_TRILHO_CURVO
 }
 
-var sentido_trilho: Direcao.Sentido = Direcao.Sentido.CIMA
-
-var _sentidos_slots: Dictionary = {}
+var sentido_trilho = Direcao.Sentido.CIMA
+var sentidos_slots = {}
 
 
 func item_atual() -> String:
-	return str(inventario_jogador.get(indice_inventario, ""))
+	return inventario_jogador.get(indice_inventario, "")
+
+func item_atual_e_trilho() -> bool:
+	return item_atual().begins_with("Trilho")
+
+func usando_mao() -> bool:
+	return item_atual() == ITEM_MAO
 
 
-func definir_indice(novo_indice: int) -> void:
-	if novo_indice < 0 or novo_indice >= MAX_ITENS:
+func tem_madeira(quantidade: int = 1) -> bool:
+	return madeira >= quantidade
+
+func gastar_madeira(quantidade: int = 1) -> bool:
+	if not tem_madeira(quantidade):
+		return false
+
+	madeira -= quantidade
+	inventario_alterado.emit()
+	return true
+
+func adicionar_madeira(quantidade: int = 1) -> void:
+	madeira += quantidade
+	inventario_alterado.emit()
+
+func definir_indice(indice: int) -> void:
+	if indice < 0 or indice >= MAX_ITENS:
 		return
 
-	if novo_indice == indice_inventario:
+	if indice == indice_inventario:
 		return
 
-	_sentidos_slots[indice_inventario] = sentido_trilho
+	sentidos_slots[indice_inventario] = sentido_trilho
+	indice_inventario = indice
 
-	indice_inventario = novo_indice
-
-	sentido_trilho = _sentidos_slots.get(
-		indice_inventario,
+	sentido_trilho = sentidos_slots.get(
+		indice,
 		Direcao.Sentido.CIMA
 	)
 
@@ -45,14 +66,10 @@ func definir_indice(novo_indice: int) -> void:
 
 
 func girar_trilho(passos: int) -> void:
-	if not item_atual().begins_with("Trilho"):
+	if not item_atual_e_trilho():
 		return
 
-	sentido_trilho = Direcao.avancar_sentido(
-		sentido_trilho,
-		passos
-	)
-
+	sentido_trilho = Direcao.avancar_sentido(sentido_trilho, passos)
 	inventario_alterado.emit()
 
 
@@ -60,10 +77,7 @@ func obter_sentido(indice: int) -> Direcao.Sentido:
 	if indice == indice_inventario:
 		return sentido_trilho
 
-	return _sentidos_slots.get(
-		indice,
-		Direcao.Sentido.CIMA
-	)
+	return sentidos_slots.get(indice, Direcao.Sentido.CIMA)
 
 
 func obter_eixo(indice: int) -> Direcao.Eixo:
@@ -77,7 +91,6 @@ func definir_item(indice: int, nome_item: String) -> bool:
 
 	inventario_jogador[indice] = nome_item
 	inventario_alterado.emit()
-
 	return true
 
 
@@ -90,5 +103,4 @@ func selecionar_item(indice: int) -> bool:
 		return false
 
 	definir_indice(indice)
-
 	return true

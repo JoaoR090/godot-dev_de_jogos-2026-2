@@ -18,11 +18,12 @@ trilhos = NodePath("../Trilhos")
 direcao_inicial = 2
 
 [node name="Estacao" parent="." unique_id=1099004966 instance=ExtResource("3_o6xl0")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.083462, 0, 20.976421)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22.5, 0, 21.5)
 
-[node name="Player" parent="." unique_id=1211023565 node_paths=PackedStringArray("grid_trilhos") instance=ExtResource("4_tipki")]
+[node name="Player" parent="." unique_id=1211023565 node_paths=PackedStringArray("grid_trilhos", "grid_arvores") instance=ExtResource("4_tipki")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.85062, 0, 18.660137)
 grid_trilhos = NodePath("../Trilhos")
+grid_arvores = NodePath("../planice_mapa")
 
 [node name="Trilhos" parent="." unique_id=1643442532 instance=ExtResource("5_85g3d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)

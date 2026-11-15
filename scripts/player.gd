@@ -5,12 +5,14 @@ extends Node3D
 signal inventario_alterado
 
 @export var grid_trilhos: Trilhos
+@export var grid_arvores: GridMap
 @export_range(0, 10, 1) var raio_colocacao: int = 1
 
 @onready var movimento = $MovimentoJogador
 @onready var inventario = $InventarioJogador
 @onready var construcao = $ConstrucaoTrilhos
 @onready var preview = $PreviewTrilhos
+@onready var coleta = $ColetaMadeira
 
 
 func _ready() -> void:
@@ -31,14 +33,25 @@ func _ready() -> void:
 	preview.construcao = construcao
 	preview.inventario = inventario
 
+	coleta.jogador = self
+	coleta.grid_arvores = grid_arvores
+	coleta.construcao = construcao
+	coleta.inventario = inventario
+
 	inventario.inventario_alterado.connect(_notificar_mudanca)
 	_notificar_mudanca()
 
 
 func _physics_process(delta: float) -> void:
-	movimento.mover_em_grade(delta)
-	construcao.colocar_trilho()
-	construcao.remover_trilho()
+	var atordoado: bool = coleta.esta_atordoado()
+
+	if not atordoado:
+		movimento.mover_em_grade(delta)
+		construcao.colocar_trilho()
+		construcao.remover_trilho()
+
+	coleta.atualizar(delta)
+	coleta.quebrar_arvore()
 	preview.atualizar()
 
 

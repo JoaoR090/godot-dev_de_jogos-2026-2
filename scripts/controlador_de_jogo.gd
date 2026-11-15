@@ -8,6 +8,8 @@ enum Estado {
 	ENCERRADO
 }
 
+const ALTURA_ROTULO_CONTAGEM: float = 2.6
+
 # Trem que o controlador coordena.
 @export var trem: Trem
 # Espera antes do início automático, em segundos.
@@ -19,6 +21,8 @@ enum Estado {
 
 var estado: Estado = Estado.AGUARDANDO
 var _som_batida_tocado: bool = false
+var _rotulo_contagem: Label3D
+var _tempo_contagem: float = 0.0
 
 # Aguarda o tempo inicial configurado e inicia o movimento automático.
 func _ready() -> void:
@@ -26,6 +30,8 @@ func _ready() -> void:
 		push_error("O controlador precisa de um trem conectado aos trilhos.")
 		encerrar_jogo()
 		return
+
+	_criar_rotulo_contagem()
 
 	if tempo_inicial > 0.0:
 		await get_tree().create_timer(tempo_inicial).timeout
@@ -44,6 +50,37 @@ func iniciar_jogo() -> void:
 	if estado != Estado.ENCERRADO:
 		estado = Estado.ATIVO
 
+	if is_instance_valid(_rotulo_contagem):
+		_rotulo_contagem.queue_free()
+		_rotulo_contagem = null
+
+
+# Cria, acima do trem, um rótulo 3D com a contagem regressiva para o início.
+func _criar_rotulo_contagem() -> void:
+	if tempo_inicial <= 0.0:
+		return
+
+	_tempo_contagem = tempo_inicial
+	_rotulo_contagem = Label3D.new()
+	_rotulo_contagem.name = "RotuloContagem"
+	_rotulo_contagem.text = str(ceili(_tempo_contagem))
+	_rotulo_contagem.position = Vector3(0.0, ALTURA_ROTULO_CONTAGEM, 0.0)
+	FonteContador.criar_billboard(_rotulo_contagem)
+	trem.add_child(_rotulo_contagem)
+
+
+# Decrementa a contagem enquanto o jogo está aguardando.
+func _atualizar_contagem(delta: float) -> void:
+	if not is_instance_valid(_rotulo_contagem):
+		return
+
+	_tempo_contagem = maxf(0.0, _tempo_contagem - delta)
+	_rotulo_contagem.text = str(ceili(_tempo_contagem))
+
+	if _tempo_contagem <= 0.0:
+		_rotulo_contagem.queue_free()
+		_rotulo_contagem = null
+
 # Pausa o avanço automático do trem.
 func pausar_jogo() -> void:
 	if estado == Estado.ATIVO:
@@ -54,8 +91,12 @@ func encerrar_jogo() -> void:
 	estado = Estado.ENCERRADO
 
 # Escolhe o próximo trilho e coordena o movimento automático.
-func _process(_delta: float) -> void:
-	if estado != Estado.ATIVO or not is_instance_valid(trem) or trem.esta_movendo():
+func _process(delta: float) -> void:
+	if estado != Estado.ATIVO:
+		_atualizar_contagem(delta)
+		return
+
+	if not is_instance_valid(trem) or trem.esta_movendo():
 		return
 
 	var saidas: Array[Direcao.Sentido] = _saidas_disponiveis(trem.posicao_trem, trem.direcao_trem)

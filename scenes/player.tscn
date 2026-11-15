@@ -8,6 +8,7 @@
 [ext_resource type="Script" uid="uid://uthh3dln5ava" path="res://scripts/construcao_trilhos.gd" id="5_smehm"]
 [ext_resource type="Script" uid="uid://xb06qijt0t8p" path="res://scripts/inventario_jogador.gd" id="6_ur7pv"]
 [ext_resource type="Script" uid="uid://b74tuydgndq12" path="res://scripts/preview_trilhos.gd" id="7_y4r1p"]
+[ext_resource type="Script" uid="uid://dghi3t1a7lwjx" path="res://scripts/coleta_madeira.gd" id="8_coleta"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_c4xnf"]
 size = Vector2(50, 50)
@@ -58,3 +59,6 @@ script = ExtResource("6_ur7pv")
 [node name="PreviewTrilhos" type="Node3D" parent="." unique_id=1726382948 node_paths=PackedStringArray("jogador")]
 script = ExtResource("7_y4r1p")
 jogador = NodePath("..")
+
+[node name="ColetaMadeira" type="Node3D" parent="."]
+script = ExtResource("8_coleta")

@@ -1,14 +1,18 @@
 
 extends Node
 
+const SFX_COLOCACAO: AudioStream = preload("res://assets/sfx/place.wav")
+
 var jogador: Node3D
 var grid_trilhos: Trilhos
 var inventario: Node
 
 var raio_colocacao: int = 1
 
+var _audio_colocacao: AudioStreamPlayer3D
 
-func celula_alvo_colocacao() -> Dictionary:
+
+func celula_alvo_interacao() -> Dictionary:
 	if not is_instance_valid(grid_trilhos):
 		return {"valida": false, "celula": Vector3i.ZERO}
 
@@ -65,7 +69,7 @@ func colocar_trilho() -> void:
 	if not is_instance_valid(grid_trilhos):
 		return
 
-	var alvo: Dictionary = celula_alvo_colocacao()
+	var alvo: Dictionary = celula_alvo_interacao()
 
 	if not alvo.get("valida", false):
 		return
@@ -75,7 +79,19 @@ func colocar_trilho() -> void:
 		_celula_jogador()
 	)
 
+	if grid_trilhos.celula_protegida(posicao):
+		return
+
 	if grid_trilhos.tem_trilho(posicao):
+		return
+
+	if not inventario.item_atual_e_trilho():
+		return
+
+	if inventario.sentido_trilho == Direcao.Sentido.INVALIDO:
+		return
+
+	if not inventario.gastar_madeira():
 		return
 
 	match inventario.item_atual():
@@ -93,6 +109,18 @@ func colocar_trilho() -> void:
 				inventario.sentido_trilho
 			)
 
+	_tocar_colocacao(posicao)
+
+
+func _tocar_colocacao(posicao: Vector3i) -> void:
+	if not is_instance_valid(_audio_colocacao):
+		_audio_colocacao = AudioSfx.criar_player_3d(jogador, SFX_COLOCACAO)
+
+	_audio_colocacao.global_position = grid_trilhos.to_global(
+		grid_trilhos.map_to_local(posicao)
+	)
+	_audio_colocacao.play()
+
 
 func remover_trilho() -> void:
 	if not Input.is_action_pressed("break"):
@@ -104,7 +132,10 @@ func remover_trilho() -> void:
 	if not is_instance_valid(grid_trilhos):
 		return
 
-	var alvo: Dictionary = celula_alvo_colocacao()
+	if inventario.usando_mao():
+		return
+
+	var alvo: Dictionary = celula_alvo_interacao()
 
 	if not alvo.get("valida", false):
 		return
