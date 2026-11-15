@@ -4,6 +4,7 @@ extends Node3D
 @export var jogador: Node3D
 
 var grid_trilhos: Trilhos
+var grid_arvores: GridMap
 var construcao: Node
 var inventario: Node
 
@@ -43,7 +44,12 @@ func atualizar() -> void:
 		return
 
 	var posicao: Vector3i = alvo.get("celula", Vector3i.ZERO)
+
 	if grid_trilhos.celula_protegida(posicao):
+		_preview.visible = false
+		return
+
+	if _tem_arvore_em(posicao):
 		_preview.visible = false
 		return
 
@@ -60,6 +66,20 @@ func atualizar() -> void:
 	)
 
 	_preview.visible = true
+
+
+func _tem_arvore_em(celula: Vector3i) -> bool:
+	if not is_instance_valid(grid_arvores):
+		return false
+
+	var mundo: Vector3 = grid_trilhos.to_global(
+		grid_trilhos.map_to_local(celula)
+	)
+	var celula_arvore: Vector3i = grid_arvores.local_to_map(
+		grid_arvores.to_local(mundo)
+	)
+
+	return grid_arvores.get_cell_item(celula_arvore) == ColetaMadeira.ID_ARVORE
 
 
 func _criar_preview() -> void:

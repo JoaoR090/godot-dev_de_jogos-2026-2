@@ -15,8 +15,7 @@ var _audio_loop: AudioStreamPlayer3D
 var _audio_batida: AudioStreamPlayer3D
 var _loop_inicio_ms: int = -1
 
-var _tem_estacao: bool = false
-var _estacao_meio: Vector3i = Vector3i.ZERO
+var _estacoes_meio: Array[Vector3i] = []
 var _rotulo_estacao: Label3D
 var _tempo_estacao: float = 0.0
 
@@ -43,7 +42,7 @@ func _ready() -> void:
 	direcao_trem = direcao_inicial
 	rotation.y = deg_to_rad(Direcao.angulo_do_sentido(direcao_trem))
 	global_position = trilhos.to_global(trilhos.map_to_local(posicao_trem))
-	_registrar_estacao()
+	_registrar_estacoes()
 
 	trilhos.colocar_reto(posicao_trem, Direcao.eixo_do_sentido(direcao_trem))
 
@@ -84,7 +83,7 @@ func movimento(sentido: Direcao.Sentido) -> void:
 	_garantir_loop_lancando()
 	await tween.finished
 
-	if _tem_estacao and proxima_posicao == _estacao_meio:
+	if _estacoes_meio.has(proxima_posicao):
 		_iniciar_pausa_estacao()
 		await get_tree().create_timer(TEMPO_PAUSA_ESTACAO).timeout
 		_encerrar_pausa_estacao()
@@ -149,7 +148,7 @@ func _encerrar_pausa_estacao() -> void:
 	_rotulo_estacao = null
 
 
-func _registrar_estacao() -> void:
+func _registrar_estacoes() -> void:
 	if not is_instance_valid(trilhos):
 		return
 
@@ -159,25 +158,89 @@ func _registrar_estacao() -> void:
 		false
 	) as Node3D
 
-	if not is_instance_valid(estacao):
+	if not is_instance_valid(estacao) and get_tree() != null:
 		estacao = get_tree().current_scene.find_child(
 			"Estacao",
 			true,
 			false
 		) as Node3D
-	if not is_instance_valid(estacao):
+
+	if is_instance_valid(estacao):
+		var malha := _encontrar_malha(estacao)
+
+		if malha != null:
+			var aabb_local: AABB = malha.mesh.get_aabb()
+			var canto_a: Vector3 = malha.to_global(aabb_local.position)
+			var canto_b: Vector3 = malha.to_global(
+				aabb_local.position + aabb_local.size
+			)
+			_registrar_aabb_estacao(canto_a.min(canto_b), canto_a.max(canto_b))
+
+	var raiz := get_parent()
+
+	if not is_instance_valid(raiz):
 		return
 
-	var malha := _encontrar_malha(estacao)
-	if malha == null:
+	for mapa in raiz.find_children("*", "GridMap", true, false):
+		if mapa is GridMap:
+			_registrar_estacoes_no_grid(mapa as GridMap)
+
+
+func _registrar_estacoes_no_grid(mapa: GridMap) -> void:
+	var biblioteca := mapa.mesh_library
+
+	if biblioteca == null:
 		return
 
-	var aabb_local: AABB = malha.mesh.get_aabb()
-	var canto_a: Vector3 = malha.to_global(aabb_local.position)
-	var canto_b: Vector3 = malha.to_global(aabb_local.position + aabb_local.size)
-	var canto_min_mundo: Vector3 = canto_a.min(canto_b)
-	var canto_max_mundo: Vector3 = canto_a.max(canto_b)
-	var tamanho: Vector3 = canto_max_mundo - canto_min_mundo
+	var ids_estacao := {}
+	for item_id in biblioteca.get_item_list():
+		if biblioteca.get_item_name(item_id) == "Estacao":
+			ids_estacao[item_id] = true
+
+	if ids_estacao.is_empty():
+		return
+
+	for celula in mapa.get_used_cells():
+		var item: int = mapa.get_cell_item(celula)
+
+		if not ids_estacao.has(item):
+			continue
+
+		var base: Basis = mapa.get_basis_with_orthogonal_index(
+			mapa.get_cell_item_orientation(celula)
+		)
+		var item_transform: Transform3D = biblioteca.get_item_mesh_transform(item)
+		var aabb_local: AABB = biblioteca.get_item_mesh(item).get_aabb()
+		var origem: Transform3D = (
+			Transform3D(base, mapa.map_to_local(celula)) * item_transform
+		)
+
+		var minimo := Vector3(INF, INF, INF)
+		var maximo := Vector3(-INF, -INF, -INF)
+
+		for canto in _cantos_aabb(aabb_local):
+			var mundo := mapa.to_global(origem * canto)
+			minimo = minimo.min(mundo)
+			maximo = maximo.max(mundo)
+
+		_registrar_aabb_estacao(minimo, maximo)
+
+
+func _cantos_aabb(aabb: AABB) -> Array[Vector3]:
+	var minimo := aabb.position
+	var maximo := aabb.position + aabb.size
+	var cantos: Array[Vector3] = []
+
+	for x in [minimo.x, maximo.x]:
+		for y in [minimo.y, maximo.y]:
+			for z in [minimo.z, maximo.z]:
+				cantos.append(Vector3(x, y, z))
+
+	return cantos
+
+
+func _registrar_aabb_estacao(minimo: Vector3, maximo: Vector3) -> void:
+	var tamanho: Vector3 = maximo - minimo
 
 	var eixo: Direcao.Eixo = (
 		Direcao.Eixo.Z if tamanho.z >= tamanho.x else Direcao.Eixo.X
@@ -186,7 +249,7 @@ func _registrar_estacao() -> void:
 	var y := posicao_trem.y
 
 	if eixo == Direcao.Eixo.Z:
-		var centro_x: float = (canto_min_mundo.x + canto_max_mundo.x) * 0.5
+		var centro_x: float = (minimo.x + maximo.x) * 0.5
 		var coluna: int = trilhos.local_to_map(
 			trilhos.to_local(
 				Vector3(centro_x, 0.0, 0.0)
@@ -194,22 +257,22 @@ func _registrar_estacao() -> void:
 		).x
 		var x_min: int = trilhos.local_to_map(
 			trilhos.to_local(
-				Vector3(canto_min_mundo.x + 0.001, 0.0, 0.0)
+				Vector3(minimo.x + 0.001, 0.0, 0.0)
 			)
 		).x
 		var x_max: int = trilhos.local_to_map(
 			trilhos.to_local(
-				Vector3(canto_max_mundo.x - 0.001, 0.0, 0.0)
+				Vector3(maximo.x - 0.001, 0.0, 0.0)
 			)
 		).x
 		var z_min: int = trilhos.local_to_map(
 			trilhos.to_local(
-				Vector3(0.0, 0.0, canto_min_mundo.z + 0.001)
+				Vector3(0.0, 0.0, minimo.z + 0.001)
 			)
 		).z
 		var z_max: int = trilhos.local_to_map(
 			trilhos.to_local(
-				Vector3(0.0, 0.0, canto_max_mundo.z - 0.001)
+				Vector3(0.0, 0.0, maximo.z - 0.001)
 			)
 		).z
 
@@ -220,11 +283,10 @@ func _registrar_estacao() -> void:
 		for z in range(z_min, z_max + 1):
 			trilhos.colocar_reto(Vector3i(coluna, y, z), Direcao.Eixo.Z)
 
-		_estacao_meio = Vector3i(coluna, y, (z_min + z_max) / 2)
-		_tem_estacao = true
+		_estacoes_meio.append(Vector3i(coluna, y, (z_min + z_max) / 2))
 		return
 
-	var centro_z: float = (canto_min_mundo.z + canto_max_mundo.z) * 0.5
+	var centro_z: float = (minimo.z + maximo.z) * 0.5
 	var linha: int = trilhos.local_to_map(
 		trilhos.to_local(
 			Vector3(0.0, 0.0, centro_z)
@@ -232,22 +294,22 @@ func _registrar_estacao() -> void:
 	).z
 	var z_min: int = trilhos.local_to_map(
 		trilhos.to_local(
-			Vector3(0.0, 0.0, canto_min_mundo.z + 0.001)
+			Vector3(0.0, 0.0, minimo.z + 0.001)
 		)
 	).z
 	var z_max: int = trilhos.local_to_map(
 		trilhos.to_local(
-			Vector3(0.0, 0.0, canto_max_mundo.z - 0.001)
+			Vector3(0.0, 0.0, maximo.z - 0.001)
 		)
 	).z
 	var x_min: int = trilhos.local_to_map(
 		trilhos.to_local(
-			Vector3(canto_min_mundo.x + 0.001, 0.0, 0.0)
+			Vector3(minimo.x + 0.001, 0.0, 0.0)
 		)
 	).x
 	var x_max: int = trilhos.local_to_map(
 		trilhos.to_local(
-			Vector3(canto_max_mundo.x - 0.001, 0.0, 0.0)
+			Vector3(maximo.x - 0.001, 0.0, 0.0)
 		)
 	).x
 
@@ -258,8 +320,7 @@ func _registrar_estacao() -> void:
 	for x in range(x_min, x_max + 1):
 		trilhos.colocar_reto(Vector3i(x, y, linha), Direcao.Eixo.X)
 
-	_estacao_meio = Vector3i((x_min + x_max) / 2, y, linha)
-	_tem_estacao = true
+	_estacoes_meio.append(Vector3i((x_min + x_max) / 2, y, linha))
 
 
 func _encontrar_malha(raiz: Node) -> MeshInstance3D:

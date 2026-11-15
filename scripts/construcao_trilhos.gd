@@ -5,6 +5,7 @@ const SFX_COLOCACAO: AudioStream = preload("res://assets/sfx/place.wav")
 
 var jogador: Node3D
 var grid_trilhos: Trilhos
+var grid_arvores: GridMap
 var inventario: Node
 
 var raio_colocacao: int = 1
@@ -82,6 +83,9 @@ func colocar_trilho() -> void:
 	if grid_trilhos.celula_protegida(posicao):
 		return
 
+	if _tem_arvore_em(posicao):
+		return
+
 	if grid_trilhos.tem_trilho(posicao):
 		return
 
@@ -146,6 +150,20 @@ func remover_trilho() -> void:
 	)
 
 	grid_trilhos.remover_trilho(posicao)
+
+
+func _tem_arvore_em(celula: Vector3i) -> bool:
+	if not is_instance_valid(grid_arvores):
+		return false
+
+	var mundo: Vector3 = grid_trilhos.to_global(
+		grid_trilhos.map_to_local(celula)
+	)
+	var celula_arvore: Vector3i = grid_arvores.local_to_map(
+		grid_arvores.to_local(mundo)
+	)
+
+	return grid_arvores.get_cell_item(celula_arvore) == ColetaMadeira.ID_ARVORE
 
 
 func _celula_jogador() -> Vector3i:

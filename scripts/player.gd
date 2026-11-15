@@ -25,11 +25,13 @@ func _ready() -> void:
 
 	construcao.jogador = self
 	construcao.grid_trilhos = grid_trilhos
+	construcao.grid_arvores = grid_arvores
 	construcao.inventario = inventario
 	construcao.raio_colocacao = raio_colocacao
 
 	preview.jogador = self
 	preview.grid_trilhos = grid_trilhos
+	preview.grid_arvores = grid_arvores
 	preview.construcao = construcao
 	preview.inventario = inventario
 
