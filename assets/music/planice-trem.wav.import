@@ -14,7 +14,7 @@ dest_files=["res://.godot/imported/planice-trem.wav-44d4ac17f8b3f2fa5556dc13f509
 
 force/8_bit=false
 force/mono=false
-force/max_rate=false
+force/max_rate=true
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false

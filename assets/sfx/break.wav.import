@@ -14,7 +14,7 @@ dest_files=["res://.godot/imported/break.wav-b9e481872193dc4096209bb16a4acfeb.sa
 
 force/8_bit=false
 force/mono=false
-force/max_rate=false
+force/max_rate=true
 force/max_rate_hz=44100
 edit/trim=false
 edit/normalize=false
