@@ -12,7 +12,7 @@ static func garantir_bus(nome: String) -> int:
 
 	if indice == -1:
 		indice = AudioServer.bus_count
-		AudioServer.add_bus()
+		AudioServer.add_bus(indice)
 		AudioServer.set_bus_name(indice, nome)
 		AudioServer.set_bus_send(indice, "Master")
 
