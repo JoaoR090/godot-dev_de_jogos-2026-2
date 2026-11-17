@@ -6,7 +6,7 @@ const CAMINHO_MUSICA: String = "res://assets/music/planice-sem-trem.wav"
 const FUNDO_SLOT_NORMAL: Texture2D = preload("res://assets/hud/fundo_slot_desequipado.png")
 const FUNDO_SLOT_EQUIPADO: Texture2D = preload("res://assets/hud/fundo_slot_equipado.png")
 const VOLUME_SFX_PADRAO: float = 0.5
-const VOLUME_MUSICA_PADRAO: float = 0.1
+const VOLUME_MUSICA_PADRAO: float = 0.4
 
 const MODULATE_SLOT_HOVER: Color = Color(1.2, 1.15, 1.25)
 
